@@ -14,7 +14,7 @@ def _clip(text):
     return text if len(text) <= MAX_DESCRIPTION else text[:MAX_DESCRIPTION].rstrip() + "\n…"
 
 
-def build_payload(results, searches, settings, generated, repo=""):
+def build_payload(results, searches, settings, generated):
     """Page data for the searches that were just run."""
     stamp = generated.isoformat(timespec="seconds")
     jobs, companies = [], []
@@ -29,7 +29,7 @@ def build_payload(results, searches, settings, generated, repo=""):
                          "pay": j["pay"], "pay_max": j["pay_max"], "level": j["level"], "years": j["years"],
                          "requirements": j["requirements"], "description": _clip(j["description"]),
                          "workplace": j["workplace"], "new": j.get("new", False)})
-    return {"generated": stamp, "max_years": settings.max_years, "repo": repo,
+    return {"generated": stamp, "max_years": settings.max_years,
             "searches": [{"slug": s.slug, "name": s.name, "keywords": s.keywords,
                           "kind": "custom" if s.adhoc else "saved", "anywhere": s.match_description,
                           "generated": stamp} for s in searches],

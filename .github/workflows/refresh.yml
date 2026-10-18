@@ -3,33 +3,19 @@ name: Refresh job board
 on:
   schedule:
     - cron: "0 13 * * *"  # daily, about 6 AM Pacific: refresh the saved searches
-  workflow_dispatch:      # "Run workflow" button: refresh the saved searches, or run a one-off search
-    inputs:
-      keywords:
-        description: "Optional one-off search instead of a refresh, e.g. physical design, place and route (comma-separated)"
-        required: false
-        default: ""
-      anywhere:
-        description: "For the one-off search: also match the keywords in job descriptions (slower)"
-        type: boolean
-        default: false
-  issues:
-    types: [opened]       # anyone can request a search by opening an issue titled "Search: ..."
+  workflow_dispatch:      # "Run workflow" button: refresh the saved searches now
   push:
-    branches: [main]      # rebuilds the page from stored results; new saved searches run right away
+    branches: [main]      # rebuilds the page; saved searches new to companies.json are searched right away
 
 jobs:
   build:
-    # Other issues (questions, bug reports) don't start a run.
-    if: github.event_name != 'issues' || startsWith(github.event.issue.title, 'Search:')
     runs-on: ubuntu-latest
     timeout-minutes: 45
-    concurrency:  # one run at a time; a queued run picks up every open search request
+    concurrency:  # one run at a time
       group: appgrab
       cancel-in-progress: false
     permissions:
       contents: write  # stores results and history on the appgrab-state branch
-      issues: write    # replies to and closes search requests
     steps:
       - uses: actions/checkout@v7
 
@@ -43,10 +29,6 @@ jobs:
           fi
 
       - name: Search and build the page
-        env:  # passed as variables, never pasted into a script, so typed text can't run as code
-          GITHUB_TOKEN: ${{ github.token }}
-          KEYWORDS: ${{ inputs.keywords }}
-          ANYWHERE: ${{ inputs.anywhere }}
         run: python3 cloud.py
 
       # Kept on its own single-commit branch so main stays clean. Pushing it on every run also counts
