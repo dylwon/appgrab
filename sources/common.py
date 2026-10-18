@@ -38,6 +38,15 @@ class Unsupported(Exception):
     """The site can't be read automatically (blocked, JavaScript-only, or unknown platform)."""
 
 
+def _retry_delay(err, attempt):
+    """Seconds to wait before retrying: the server's Retry-After when given, else a growing backoff
+    (longer for 429 "too many requests" than for server errors)."""
+    after = (err.headers.get("Retry-After") or "").strip() if err.headers else ""
+    if after.isdigit():
+        return min(int(after), 60)
+    return (8 if err.code == 429 else 2) * (attempt + 1)
+
+
 def request(url, method="GET", data=None, headers=None, timeout=30, retries=2):
     """Fetch a URL and return (final_url, text). Retries on throttling and server errors."""
     h = {"User-Agent": UA, "Accept": "application/json, text/html;q=0.9, */*;q=0.8",
@@ -62,7 +71,7 @@ def request(url, method="GET", data=None, headers=None, timeout=30, retries=2):
                 return r.geturl(), raw.decode(r.headers.get_content_charset() or "utf-8", "replace")
         except urllib.error.HTTPError as e:
             if e.code in (429, 500, 502, 503, 504) and attempt < retries:
-                time.sleep(2 * (attempt + 1))
+                time.sleep(_retry_delay(e, attempt))
                 continue
             raise FetchError(f"HTTP {e.code} from {url}", e.code) from None
         except (urllib.error.URLError, OSError) as e:
