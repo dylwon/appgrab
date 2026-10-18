@@ -49,6 +49,66 @@
         "formal verification",
         "UVM"
       ]
+    },
+    {
+      "name": "Hardware Engineer",
+      "keywords": [
+        "hardware engineer"
+      ],
+      "exclude_title_terms": [
+        "mechanical",
+        "software",
+        "data engineer"
+      ]
+    },
+    {
+      "name": "ASIC Digital Design",
+      "keywords": [
+        "ASIC design",
+        "digital design",
+        "RTL design",
+        "logic design",
+        "SoC design",
+        "silicon design"
+      ],
+      "exclude_title_terms": [
+        "verification",
+        "validation",
+        "physical",
+        "analog",
+        "layout",
+        "photonic",
+        "software"
+      ]
+    },
+    {
+      "name": "Physical Design",
+      "keywords": [
+        "physical design",
+        "physical verification"
+      ],
+      "exclude_title_terms": [
+        "physical layer"
+      ]
+    },
+    {
+      "name": "Embedded",
+      "keywords": [
+        "embedded",
+        "firmware"
+      ]
+    },
+    {
+      "name": "FPGA",
+      "keywords": [
+        "FPGA"
+      ]
+    },
+    {
+      "name": "Electrical Engineer",
+      "keywords": [
+        "electrical engineer"
+      ]
     }
   ],
   "companies": [

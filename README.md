@@ -1,6 +1,6 @@
 # AppGrab
 
-Searches the job boards of the companies in [companies.json](./companies.json) for any keywords and shows the matching roles on one page, with location, pay (when posted), key requirements, and a direct **Apply** link for each role. It comes with a saved **ASIC Design Verification** search. Add your own saved searches, or run a one-off search for anything.
+Searches the job boards of the companies in [companies.json](./companies.json) for any keywords and shows the matching roles on one page, with location, pay (when posted), key requirements, and a direct **Apply** link for each role. It comes with saved searches for **ASIC Design Verification**, **Hardware Engineer**, **ASIC Digital Design**, **Physical Design**, **Embedded**, **FPGA**, and **Electrical Engineer** roles. Add your own saved searches, or run a one-off search for anything.
 
 ## Run it
 
@@ -9,11 +9,11 @@ Requires Python 3.9 or newer. There's nothing to install; it only uses the stand
 ```powershell
 cd AppGrab
 python appgrab.py                                            # the saved searches -> jobs.html
-python appgrab.py --search "physical design" "place and route"   # one-off search -> its own page
+python appgrab.py --search "analog design" "mixed-signal"    # one-off search -> its own page
 python appgrab.py --search UVM PCIe --anywhere               # also match keywords inside job descriptions
 ```
 
-A run takes a few minutes per search. Progress is printed per company, then the page opens in your browser. A one-off search writes its own page (e.g. `jobs-physical-design-place-and-route.html`), so `jobs.html` stays as it is.
+A run takes a few minutes per search. Progress is printed per company, then the page opens in your browser. A one-off search writes its own page (e.g. `jobs-analog-design-mixed-signal.html`), so `jobs.html` stays as it is.
 
 | Option | What it does |
 |---|---|
@@ -30,13 +30,10 @@ A run takes a few minutes per search. Progress is printed per company, then the 
 
 ## Saved searches
 
-Saved searches live under `searches` in `companies.json`. Each one gets its own entry in the page's **Search** dropdown. For example, to add physical design next to the verification search:
+Saved searches live under `searches` in `companies.json`. Each one gets its own entry in the page's **Search** dropdown. For example, an analog design search is one more entry in that list:
 
 ```json
-"searches": [
-  { "name": "ASIC Design Verification", "preset": "design-verification", "keywords": ["design verification", "UVM"] },
-  { "name": "Physical Design", "keywords": ["physical design", "place and route", "timing closure"] }
-]
+{ "name": "Analog Design", "keywords": ["analog design", "mixed-signal design"], "exclude_title_terms": ["layout"] }
 ```
 
 - `name`: what the dropdown shows.
@@ -45,14 +42,14 @@ Saved searches live under `searches` in `companies.json`. Each one gets its own 
 - `exclude_title_terms` (optional): extra title words to drop for this search only, e.g. `["verification"]` for an RTL design search.
 - `preset` (optional): `"design-verification"` adds rules tuned for DV. It treats "DV", "UVM" and "pre-silicon" titles as matches, accepts generic titles like "Hardware Engineer" when the description is clearly about verification, and drops software, firmware and physical-verification roles.
 
-Each saved search adds a few minutes to every run.
+Each saved search adds a few minutes to every run. Keep searches specific: AppGrab reads at most 60 search results per keyword from each site and opens at most 60 postings per company per search. A very broad search like "software engineer" fills those limits at every big company, so its list would be long and still incomplete. That's why there's no saved software search; search for those roles on the companies' own sites.
 
 ## Shared link
 
 The page is published at **https://dylwon.github.io/appgrab/** for anyone to open. It only shows the saved searches in `companies.json`; visitors can browse and filter them but can't start searches of their own. GitHub runs AppGrab on its own servers (`.github/workflows/refresh.yml`, which runs `cloud.py`):
 
 - **Every day at about 6 AM Pacific** it refreshes the saved searches.
-- **Adding a saved search** (only you can, since it means editing this repository): add it under `searches` in `companies.json`, then commit and push. The run that the push starts searches just the new saved search and publishes it in a few minutes; the others keep their stored results.
+- **Adding a saved search** (only you can, since it means editing this repository): add it under `searches` in `companies.json`, then commit and push. The run that the push starts searches just the new saved searches (a few minutes each) and publishes them; the others keep their stored results.
 - **Actions → Refresh job board → Run workflow** refreshes all saved searches right away.
 - **Pushing to `main` otherwise just rebuilds the page from the stored results without searching job sites.** For example, editing `template.html` takes effect within a minute or two.
 - **Private one-off searches** stay on your PC: `python appgrab.py --search ...` writes a local page and never touches the shared one.

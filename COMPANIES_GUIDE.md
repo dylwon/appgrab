@@ -2,7 +2,7 @@
 
 [companies.json](./companies.json) contains:
 
-- the **settings and saved searches** (ASIC Design Verification roles in the US to start with; the results page shows new grad / 0–1 years by default and can switch to senior levels), and
+- the **settings and saved searches** (US roles in ASIC design verification, hardware engineering, ASIC digital design, physical design, embedded, FPGA, and electrical engineering; the results page shows new grad / 0–1 years by default and can switch to senior levels), and
 - **78 companies**: major chipmakers, big-tech silicon teams, EDA/IP vendors, chip startups, and AI-for-chip-design startups.
 
 **The job-board URLs are already filled in and were checked against each site's live job listings in October 2026.** Use this guide when you want to add a company or fix a URL that stops working.
@@ -92,7 +92,7 @@ Above the companies, `companies.json` has two more blocks. You only need to touc
   - `senior_title_terms`: titles containing any of these (Senior, Staff, Principal, ...) are labeled senior. The results page hides them unless you pick a senior level in its dropdown.
   - `exclude_title_terms`: titles containing any of these are skipped. Remove `"intern"` and `"co-op"` if you also want internships.
   - `locations`: change to specific states/cities (e.g. `["CA", "TX", "Remote"]`) or add more countries.
-- **`searches`** lists the saved searches (ASIC Design Verification to start with). Each has a `name` and the `keywords` sent to every site. See "Saved searches" in [README.md](./README.md) to add more, e.g. physical design.
+- **`searches`** lists the saved searches (ASIC Design Verification, Hardware Engineer, ASIC Digital Design, Physical Design, Embedded, FPGA, Electrical Engineer). Each has a `name` and the `keywords` sent to every site. See "Saved searches" in [README.md](./README.md) to add more, e.g. analog design.
 
 ---
 
