@@ -1,0 +1,67 @@
+name: Refresh job board
+
+on:
+  schedule:
+    - cron: "0 13 * * *"  # daily, about 6 AM Pacific
+  workflow_dispatch:      # "Run workflow" button on the Actions tab
+  push:
+    branches: [main]      # e.g. after editing companies.json
+
+concurrency:
+  group: appgrab
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write  # saves the "jobs already seen" history to the appgrab-state branch
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Restore history of jobs already seen
+        run: |
+          if git fetch --depth=1 origin appgrab-state 2>/dev/null; then
+            git show FETCH_HEAD:seen.json > .appgrab_seen.json
+          else
+            echo "No history yet - this run sets the baseline for NEW badges."
+          fi
+
+      - name: Search the job boards
+        run: python3 appgrab.py --no-open --out site/index.html
+
+      # Kept on its own single-commit branch so main stays clean. Pushing it daily also counts as
+      # repository activity, which stops GitHub from pausing the schedule after 60 quiet days.
+      - name: Save history of jobs seen
+        env:
+          TOKEN: ${{ github.token }}
+        run: |
+          state="$RUNNER_TEMP/state"
+          mkdir -p "$state" && cp .appgrab_seen.json "$state/seen.json"
+          cd "$state"
+          git init -q -b appgrab-state
+          git add seen.json
+          git -c user.name="github-actions[bot]" \
+              -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+              commit -qm "Update jobs seen"
+          git push -qf "https://x-access-token:${TOKEN}@github.com/${GITHUB_REPOSITORY}.git" appgrab-state
+
+      - uses: actions/configure-pages@v6
+
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5

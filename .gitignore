@@ -1,0 +1,6 @@
+# Generated locally by appgrab.py
+jobs.html
+.appgrab_seen.json
+site/
+__pycache__/
+*.pyc

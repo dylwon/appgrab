@@ -1,0 +1,675 @@
+{
+  "_readme": "Job-board URLs filled in and checked in Oct 2026. To add a company or fix a URL, see COMPANIES_GUIDE.md",
+  "search": {
+    "role": "ASIC Design Verification",
+    "keywords": [
+      "design verification",
+      "verification engineer",
+      "ASIC verification",
+      "SoC verification",
+      "pre-silicon validation",
+      "formal verification",
+      "UVM"
+    ],
+    "entry_level_terms": [
+      "new grad",
+      "new college grad",
+      "NCG",
+      "university graduate",
+      "college graduate",
+      "recent graduate",
+      "early career",
+      "entry level",
+      "junior",
+      "associate",
+      "engineer I",
+      "engineer 1"
+    ],
+    "max_years_experience": 1,
+    "senior_title_terms": [
+      "senior",
+      "sr",
+      "staff",
+      "principal",
+      "lead",
+      "architect",
+      "fellow",
+      "distinguished"
+    ],
+    "exclude_title_terms": [
+      "manager",
+      "director",
+      "intern",
+      "co-op"
+    ],
+    "locations": [
+      "United States"
+    ]
+  },
+  "companies": [
+    {
+      "name": "NVIDIA",
+      "category": "major",
+      "careers_url": "https://nvidia.wd5.myworkdayjobs.com/NVIDIAExternalCareerSite",
+      "search_url": "https://nvidia.wd5.myworkdayjobs.com/NVIDIAExternalCareerSite?q=verification",
+      "early_careers_url": "",
+      "notes": ""
+    },
+    {
+      "name": "AMD",
+      "category": "major",
+      "careers_url": "https://careers.amd.com/careers-home/jobs",
+      "search_url": "https://careers.amd.com/careers-home/jobs?keywords=verification",
+      "early_careers_url": "",
+      "notes": ""
+    },
+    {
+      "name": "Intel",
+      "category": "major",
+      "careers_url": "https://intel.wd1.myworkdayjobs.com/External",
+      "search_url": "https://intel.wd1.myworkdayjobs.com/External?q=verification",
+      "early_careers_url": "",
+      "notes": ""
+    },
+    {
+      "name": "Qualcomm",
+      "category": "major",
+      "careers_url": "https://careers.qualcomm.com/careers",
+      "search_url": "https://careers.qualcomm.com/careers?query=verification",
+      "early_careers_url": "",
+      "notes": ""
+    },
+    {
+      "name": "Broadcom",
+      "category": "major",
+      "careers_url": "https://broadcom.wd1.myworkdayjobs.com/External_Career",
+      "search_url": "https://broadcom.wd1.myworkdayjobs.com/External_Career?q=verification",
+      "early_careers_url": "",
+      "notes": ""
+    },
+    {
+      "name": "Marvell",
+      "category": "major",
+      "careers_url": "https://marvell.wd1.myworkdayjobs.com/MarvellCareers",
+      "search_url": "https://marvell.wd1.myworkdayjobs.com/MarvellCareers?q=verification",
+      "early_careers_url": "",
+      "notes": ""
+    },
+    {
+      "name": "MediaTek (US)",
+      "category": "major",
+      "careers_url": "https://careers.mediatek.com/en/jobs",
+      "search_url": "",
+      "early_careers_url": "",
+      "notes": "Global job board (filter to US locations). Couldn't auto-verify: the job list loads with JavaScript. URL is the company's official careers page"
+    },
+    {
+      "name": "Samsung Semiconductor (US)",
+      "category": "major",
+      "careers_url": "https://sec.wd3.myworkdayjobs.com/Samsung_Careers",
+      "search_url": "https://sec.wd3.myworkdayjobs.com/Samsung_Careers?q=verification",
+      "early_careers_url": "",
+      "notes": ""
+    },
+    {
+      "name": "SK hynix America",
+      "category": "major",
+      "careers_url": "https://job-boards.greenhouse.io/skhynixamerica",
+      "search_url": "",
+      "early_careers_url": "",
+      "notes": ""
+    },
+    {
+      "name": "Micron",
+      "category": "major",
+      "careers_url": "https://careers.micron.com/careers",
+      "search_url": "https://careers.micron.com/careers?query=verification",
+      "early_careers_url": "",
+      "notes": ""
+    },
+    {
+      "name": "Texas Instruments",
+      "category": "major",
+      "careers_url": "https://edbz.fa.us2.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX/requisitions",
+      "search_url": "https://edbz.fa.us2.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX/requisitions?keyword=verification",
+      "early_careers_url": "",
+      "notes": ""
+    },
+    {
+      "name": "Analog Devices",
+      "category": "major",
+      "careers_url": "https://analogdevices.wd1.myworkdayjobs.com/External",
+      "search_url": "https://analogdevices.wd1.myworkdayjobs.com/External?q=verification",
+      "early_careers_url": "",
+      "notes": ""
+    },
+    {
+      "name": "NXP",
+      "category": "major",
+      "careers_url": "https://nxp.wd3.myworkdayjobs.com/careers",
+      "search_url": "https://nxp.wd3.myworkdayjobs.com/careers?q=verification",
+      "early_careers_url": "",
+      "notes": ""
+    },
+    {
+      "name": "Infineon",
+      "category": "major",
+      "careers_url": "https://jobs.infineon.com/careers",
+      "search_url": "https://jobs.infineon.com/careers?query=verification",
+      "early_careers_url": "",
+      "notes": ""
+    },
+    {
+      "name": "STMicroelectronics",
+      "category": "major",
+      "careers_url": "https://stmicroelectronics.eightfold.ai/careers?domain=stmicroelectronics.com",
+      "search_url": "https://stmicroelectronics.eightfold.ai/careers?domain=stmicroelectronics.com&query=verification",
+      "early_careers_url": "",
+      "notes": ""
+    },
+    {
+      "name": "Renesas",
+      "category": "major",
+      "careers_url": "https://jobs.smartrecruiters.com/RenesasElectronics",
+      "search_url": "",
+      "early_careers_url": "",
+      "notes": "Same jobs as jobs.renesas.com"
+    },
+    {
+      "name": "Microchip",
+      "category": "major",
+      "careers_url": "https://microchiphr.wd5.myworkdayjobs.com/External",
+      "search_url": "https://microchiphr.wd5.myworkdayjobs.com/External?q=verification",
+      "early_careers_url": "",
+      "notes": ""
+    },
+    {
+      "name": "Altera",
+      "category": "major",
+      "careers_url": "https://altera.wd1.myworkdayjobs.com/Altera",
+      "search_url": "https://altera.wd1.myworkdayjobs.com/Altera?q=verification",
+      "early_careers_url": "",
+      "notes": ""
+    },
+    {
+      "name": "Lattice Semiconductor",
+      "category": "major",
+      "careers_url": "https://latticesemi.wd5.myworkdayjobs.com/latticesemiconductorscareers",
+      "search_url": "https://latticesemi.wd5.myworkdayjobs.com/latticesemiconductorscareers?q=verification",
+      "early_careers_url": "",
+      "notes": ""
+    },
+    {
+      "name": "Ampere Computing",
+      "category": "major",
+      "careers_url": "https://careers.amperecomputing.com/search/jobs",
+      "search_url": "",
+      "early_careers_url": "",
+      "notes": "Couldn't auto-verify: the site blocks automated requests. URL is from the company's official careers page"
+    },
+    {
+      "name": "Astera Labs",
+      "category": "major",
+      "careers_url": "https://job-boards.greenhouse.io/asteralabs",
+      "search_url": "",
+      "early_careers_url": "",
+      "notes": ""
+    },
+    {
+      "name": "Credo Technology",
+      "category": "major",
+      "careers_url": "https://credosemi.com/about-credo/careers/",
+      "search_url": "",
+      "early_careers_url": "",
+      "notes": "Jobs are listed on this page; applications go through HiBob (credo.careers.hibob.com)"
+    },
+    {
+      "name": "Cirrus Logic",
+      "category": "major",
+      "careers_url": "https://jobs.eu.lever.co/cirrus",
+      "search_url": "",
+      "early_careers_url": "",
+      "notes": ""
+    },
+    {
+      "name": "Synaptics",
+      "category": "major",
+      "careers_url": "https://careers.synaptics.com/search/jobs",
+      "search_url": "",
+      "early_careers_url": "",
+      "notes": "Couldn't auto-verify: the site blocks automated requests. URL is from the company's official careers page"
+    },
+    {
+      "name": "Ambarella",
+      "category": "major",
+      "careers_url": "https://ambarella.wd108.myworkdayjobs.com/Ambarella",
+      "search_url": "https://ambarella.wd108.myworkdayjobs.com/Ambarella?q=verification",
+      "early_careers_url": "",
+      "notes": ""
+    },
+    {
+      "name": "Silicon Labs",
+      "category": "major",
+      "careers_url": "https://silabs.wd1.myworkdayjobs.com/SiliconlabsCareers",
+      "search_url": "https://silabs.wd1.myworkdayjobs.com/SiliconlabsCareers?q=verification",
+      "early_careers_url": "",
+      "notes": "Being acquired by Texas Instruments (expected to close in 2027)"
+    },
+    {
+      "name": "MaxLinear",
+      "category": "major",
+      "careers_url": "https://careersus-maxlinear.icims.com/jobs/search?ss=1",
+      "search_url": "https://careersus-maxlinear.icims.com/jobs/search?ss=1&searchKeyword=verification",
+      "early_careers_url": "",
+      "notes": "US job board. Couldn't auto-verify: the site blocks automated requests. URL is from the company's official careers page"
+    },
+    {
+      "name": "Sandisk",
+      "category": "major",
+      "careers_url": "https://avature.sandisk.com/Careers/SearchJobs",
+      "search_url": "https://avature.sandisk.com/Careers/SearchJobs/verification",
+      "early_careers_url": "",
+      "notes": ""
+    },
+    {
+      "name": "Seagate",
+      "category": "major",
+      "careers_url": "https://seagatecareers.com/search/",
+      "search_url": "https://seagatecareers.com/search/?q=verification",
+      "early_careers_url": "",
+      "notes": ""
+    },
+    {
+      "name": "Solidigm",
+      "category": "major",
+      "careers_url": "https://www.solidigm.com/who-we-are/careers-page/job-listings.html",
+      "search_url": "",
+      "early_careers_url": "",
+      "notes": "Couldn't auto-verify: the job list loads with JavaScript. URL is the company's official careers page"
+    },
+    {
+      "name": "Apple",
+      "category": "big-tech",
+      "careers_url": "https://jobs.apple.com/en-us/search",
+      "search_url": "https://jobs.apple.com/en-us/search?search=verification&sort=relevance",
+      "early_careers_url": "",
+      "notes": ""
+    },
+    {
+      "name": "Google",
+      "category": "big-tech",
+      "careers_url": "https://www.google.com/about/careers/applications/jobs/results",
+      "search_url": "https://www.google.com/about/careers/applications/jobs/results?q=verification",
+      "early_careers_url": "",
+      "notes": "One board covers TPU, Tensor, and other silicon teams"
+    },
+    {
+      "name": "Meta",
+      "category": "big-tech",
+      "careers_url": "https://www.metacareers.com/jobs",
+      "search_url": "https://www.metacareers.com/jobs?q=verification",
+      "early_careers_url": "",
+      "notes": "Includes MTIA, Reality Labs silicon, and the former Rivos team. Couldn't auto-verify: the site blocks automated requests. URL is from the company's official careers page"
+    },
+    {
+      "name": "Microsoft",
+      "category": "big-tech",
+      "careers_url": "https://apply.careers.microsoft.com/careers",
+      "search_url": "https://apply.careers.microsoft.com/careers?query=verification",
+      "early_careers_url": "",
+      "notes": ""
+    },
+    {
+      "name": "Amazon (Annapurna Labs / AWS)",
+      "category": "big-tech",
+      "careers_url": "https://www.amazon.jobs/en/search",
+      "search_url": "https://www.amazon.jobs/en/search?base_query=verification",
+      "early_careers_url": "",
+      "notes": "One board (amazon.jobs) covers Annapurna Labs, AWS, and devices"
+    },
+    {
+      "name": "Tesla",
+      "category": "big-tech",
+      "careers_url": "https://www.tesla.com/careers/search/",
+      "search_url": "https://www.tesla.com/careers/search/?query=verification&site=US",
+      "early_careers_url": "",
+      "notes": "Couldn't auto-verify: the site blocks automated requests. URL is from the company's official careers page"
+    },
+    {
+      "name": "OpenAI",
+      "category": "big-tech",
+      "careers_url": "https://jobs.ashbyhq.com/openai",
+      "search_url": "",
+      "early_careers_url": "",
+      "notes": ""
+    },
+    {
+      "name": "SpaceX (Starlink)",
+      "category": "big-tech",
+      "careers_url": "https://job-boards.greenhouse.io/spacex",
+      "search_url": "",
+      "early_careers_url": "",
+      "notes": ""
+    },
+    {
+      "name": "Cisco",
+      "category": "big-tech",
+      "careers_url": "https://careers.cisco.com/global/en/search-results",
+      "search_url": "https://careers.cisco.com/global/en/search-results?keywords=verification",
+      "early_careers_url": "",
+      "notes": ""
+    },
+    {
+      "name": "IBM",
+      "category": "big-tech",
+      "careers_url": "https://www.ibm.com/careers/search",
+      "search_url": "https://www.ibm.com/careers/search?q=verification",
+      "early_careers_url": "",
+      "notes": "Couldn't auto-verify: the job list loads with JavaScript. URL is the company's official careers page"
+    },
+    {
+      "name": "HPE (incl. Juniper)",
+      "category": "big-tech",
+      "careers_url": "https://hpe.wd5.myworkdayjobs.com/Jobsathpe",
+      "search_url": "https://hpe.wd5.myworkdayjobs.com/Jobsathpe?q=verification",
+      "early_careers_url": "",
+      "notes": "Juniper is now part of HPE"
+    },
+    {
+      "name": "Nokia",
+      "category": "big-tech",
+      "careers_url": "https://fa-evmr-saasfaprod1.fa.ocs.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1/requisitions",
+      "search_url": "https://fa-evmr-saasfaprod1.fa.ocs.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1/requisitions?keyword=verification",
+      "early_careers_url": "",
+      "notes": "Same board as jobs.nokia.com"
+    },
+    {
+      "name": "Ciena",
+      "category": "big-tech",
+      "careers_url": "https://ciena.wd5.myworkdayjobs.com/Careers",
+      "search_url": "https://ciena.wd5.myworkdayjobs.com/Careers?q=verification",
+      "early_careers_url": "",
+      "notes": ""
+    },
+    {
+      "name": "Synopsys",
+      "category": "eda-ip",
+      "careers_url": "https://careers.synopsys.com/search-jobs",
+      "search_url": "https://careers.synopsys.com/search-jobs/verification",
+      "early_careers_url": "",
+      "notes": ""
+    },
+    {
+      "name": "Cadence",
+      "category": "eda-ip",
+      "careers_url": "https://cadence.wd1.myworkdayjobs.com/External_Careers",
+      "search_url": "https://cadence.wd1.myworkdayjobs.com/External_Careers?q=verification",
+      "early_careers_url": "",
+      "notes": ""
+    },
+    {
+      "name": "Siemens EDA",
+      "category": "eda-ip",
+      "careers_url": "https://jobs.siemens.com/en_US/externaljobs/SearchJobs",
+      "search_url": "https://jobs.siemens.com/en_US/externaljobs/SearchJobs/verification",
+      "early_careers_url": "",
+      "notes": "All Siemens jobs; Siemens EDA roles are under Digital Industries Software"
+    },
+    {
+      "name": "Arm",
+      "category": "eda-ip",
+      "careers_url": "https://careers.arm.com/search-jobs",
+      "search_url": "https://careers.arm.com/search-jobs/verification",
+      "early_careers_url": "",
+      "notes": ""
+    },
+    {
+      "name": "Rambus",
+      "category": "eda-ip",
+      "careers_url": "https://careers-rambus.icims.com/jobs/search?ss=1",
+      "search_url": "https://careers-rambus.icims.com/jobs/search?ss=1&searchKeyword=verification",
+      "early_careers_url": "",
+      "notes": "Couldn't auto-verify: the site blocks automated requests. URL is from the company's official careers page"
+    },
+    {
+      "name": "SiFive",
+      "category": "eda-ip",
+      "careers_url": "https://sifive.wd1.myworkdayjobs.com/sifivecareers",
+      "search_url": "https://sifive.wd1.myworkdayjobs.com/sifivecareers?q=verification",
+      "early_careers_url": "",
+      "notes": ""
+    },
+    {
+      "name": "Arteris",
+      "category": "eda-ip",
+      "careers_url": "https://jobs.jobvite.com/arteris/jobs",
+      "search_url": "",
+      "early_careers_url": "",
+      "notes": ""
+    },
+    {
+      "name": "CEVA",
+      "category": "eda-ip",
+      "careers_url": "https://www.ceva-ip.com/career/location/america/",
+      "search_url": "",
+      "early_careers_url": "",
+      "notes": "US openings; other regions are under ceva-ip.com/career/"
+    },
+    {
+      "name": "Cerebras Systems",
+      "category": "startup",
+      "careers_url": "https://jobs.ashbyhq.com/cerebras",
+      "search_url": "",
+      "early_careers_url": "",
+      "notes": ""
+    },
+    {
+      "name": "SambaNova Systems",
+      "category": "startup",
+      "careers_url": "https://job-boards.greenhouse.io/sambanovasystems",
+      "search_url": "",
+      "early_careers_url": "",
+      "notes": ""
+    },
+    {
+      "name": "Tenstorrent",
+      "category": "startup",
+      "careers_url": "https://job-boards.greenhouse.io/tenstorrent",
+      "search_url": "",
+      "early_careers_url": "",
+      "notes": ""
+    },
+    {
+      "name": "Etched",
+      "category": "startup",
+      "careers_url": "https://jobs.ashbyhq.com/etched",
+      "search_url": "",
+      "early_careers_url": "",
+      "notes": ""
+    },
+    {
+      "name": "MatX",
+      "category": "startup",
+      "careers_url": "https://jobs.ashbyhq.com/matx",
+      "search_url": "",
+      "early_careers_url": "",
+      "notes": ""
+    },
+    {
+      "name": "d-Matrix",
+      "category": "startup",
+      "careers_url": "https://jobs.ashbyhq.com/d-matrix",
+      "search_url": "",
+      "early_careers_url": "",
+      "notes": ""
+    },
+    {
+      "name": "Positron AI",
+      "category": "startup",
+      "careers_url": "https://ats.rippling.com/positron/jobs",
+      "search_url": "",
+      "early_careers_url": "",
+      "notes": ""
+    },
+    {
+      "name": "Unconventional AI",
+      "category": "startup",
+      "careers_url": "https://job-boards.greenhouse.io/unconventionalinc",
+      "search_url": "",
+      "early_careers_url": "",
+      "notes": ""
+    },
+    {
+      "name": "Majestic Labs",
+      "category": "startup",
+      "careers_url": "https://www.comeet.com/jobs/majesticlabs/AA.004",
+      "search_url": "",
+      "early_careers_url": "",
+      "notes": ""
+    },
+    {
+      "name": "Lightmatter",
+      "category": "startup",
+      "careers_url": "https://job-boards.greenhouse.io/lightmatter",
+      "search_url": "",
+      "early_careers_url": "",
+      "notes": ""
+    },
+    {
+      "name": "Ayar Labs",
+      "category": "startup",
+      "careers_url": "https://ayarlabs.com/careers/",
+      "search_url": "",
+      "early_careers_url": "",
+      "notes": "Jobs are listed on this page (Paycor recruiting)"
+    },
+    {
+      "name": "Kandou AI",
+      "category": "startup",
+      "careers_url": "https://jobs.ashbyhq.com/kandou-ai",
+      "search_url": "",
+      "early_careers_url": "",
+      "notes": ""
+    },
+    {
+      "name": "Eridu",
+      "category": "startup",
+      "careers_url": "https://ats.rippling.com/eridu-ai/jobs",
+      "search_url": "",
+      "early_careers_url": "",
+      "notes": ""
+    },
+    {
+      "name": "Cornelis Networks",
+      "category": "startup",
+      "careers_url": "https://www.cornelis.com/company/careers",
+      "search_url": "",
+      "early_careers_url": "",
+      "notes": "Couldn't auto-verify: the job list loads with JavaScript. URL is the company's official careers page"
+    },
+    {
+      "name": "Velaura AI (formerly Auradine)",
+      "category": "startup",
+      "careers_url": "https://jobs.lever.co/velaura",
+      "search_url": "",
+      "early_careers_url": "",
+      "notes": "Auradine rebranded as Velaura AI in March 2026"
+    },
+    {
+      "name": "Eliyan",
+      "category": "startup",
+      "careers_url": "https://jobs.lever.co/eliyan",
+      "search_url": "",
+      "early_careers_url": "",
+      "notes": ""
+    },
+    {
+      "name": "Baya Systems",
+      "category": "startup",
+      "careers_url": "https://job-boards.greenhouse.io/bayasystems",
+      "search_url": "",
+      "early_careers_url": "",
+      "notes": ""
+    },
+    {
+      "name": "Akeana",
+      "category": "startup",
+      "careers_url": "",
+      "search_url": "",
+      "early_careers_url": "",
+      "notes": "No public job board found: akeana.com has no careers or jobs page as of Oct 2026"
+    },
+    {
+      "name": "Quadric",
+      "category": "startup",
+      "careers_url": "https://jobs.ashbyhq.com/quadric",
+      "search_url": "",
+      "early_careers_url": "",
+      "notes": ""
+    },
+    {
+      "name": "SiMa.ai",
+      "category": "startup",
+      "careers_url": "https://jobs.jobvite.com/simaai/jobs",
+      "search_url": "",
+      "early_careers_url": "",
+      "notes": ""
+    },
+    {
+      "name": "EnCharge AI",
+      "category": "startup",
+      "careers_url": "https://job-boards.greenhouse.io/enchargeai36",
+      "search_url": "",
+      "early_careers_url": "",
+      "notes": ""
+    },
+    {
+      "name": "Mythic",
+      "category": "startup",
+      "careers_url": "https://jobs.lever.co/mythic-ai.com",
+      "search_url": "",
+      "early_careers_url": "",
+      "notes": ""
+    },
+    {
+      "name": "Celero Communications",
+      "category": "startup",
+      "careers_url": "https://celero.inc/careers/",
+      "search_url": "",
+      "early_careers_url": "",
+      "notes": "Couldn't auto-verify: the site blocks automated requests. URL is from the company's official careers page"
+    },
+    {
+      "name": "ChipAgents",
+      "category": "ai-chip-design",
+      "careers_url": "https://jobs.ashbyhq.com/alpha-design-ai-inc",
+      "search_url": "",
+      "early_careers_url": "",
+      "notes": "Board is listed under ChipAgents' legal name, Alpha Design AI"
+    },
+    {
+      "name": "Cognichip",
+      "category": "ai-chip-design",
+      "careers_url": "https://www.cognichip.ai/careers",
+      "search_url": "",
+      "early_careers_url": "",
+      "notes": "Couldn't auto-verify: the job list loads with JavaScript. URL is the company's official careers page (job board: talent.octopyd.com/careers/cognichip)"
+    },
+    {
+      "name": "Ricursive Intelligence",
+      "category": "ai-chip-design",
+      "careers_url": "https://jobs.ashbyhq.com/Ricursive%20Intelligence",
+      "search_url": "",
+      "early_careers_url": "",
+      "notes": ""
+    },
+    {
+      "name": "Normal Computing",
+      "category": "ai-chip-design",
+      "careers_url": "https://jobs.ashbyhq.com/normalcomputing",
+      "search_url": "",
+      "early_careers_url": "",
+      "notes": ""
+    }
+  ]
+}

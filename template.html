@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AppGrab · __APPGRAB_TITLE__</title>
+<style>
+  :root {
+    --bg: #f5f6f8; --card: #fff; --text: #1c2230; --muted: #5d6678; --line: #e2e5eb; --chip: #eef1f5;
+    --accent: #2457d6; --on-accent: #fff;
+    --ng: #0f6b62; --ng-bg: #d2f5ee; --en: #1d4ed8; --en-bg: #dde8fd; --un: #59606d; --un-bg: #eceef2;
+    --ex: #9a4a07; --ex-bg: #fdefd2; --new: #b0185a; --new-bg: #fde4ef; --sr: #6d28d9; --sr-bg: #ede9fe;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f1218; --card: #171b23; --text: #e5e8ee; --muted: #98a1b3; --line: #2a303b; --chip: #222833;
+      --accent: #4d7ef0; --ng: #6ee7d6; --ng-bg: #123a36; --en: #9bbcff; --en-bg: #1b2b4d;
+      --un: #b3bac7; --un-bg: #2a2f39; --ex: #f8c27a; --ex-bg: #3d2c12; --new: #f9a8cd; --new-bg: #44182d;
+      --sr: #c4b5fd; --sr-bg: #2e2350;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 14px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+         background: var(--bg); color: var(--text); }
+  header { padding: 20px 24px 6px; }
+  h1 { margin: 0; font-size: 22px; letter-spacing: -0.01em; }
+  .sub { color: var(--muted); margin: 4px 0 0; font-size: 13px; }
+  .controls { position: sticky; top: 0; z-index: 5; background: var(--bg); padding: 10px 24px;
+              border-bottom: 1px solid var(--line); display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; }
+  .controls input[type=search], .controls select {
+    padding: 7px 11px; border: 1px solid var(--line); border-radius: 8px; background: var(--card);
+    color: var(--text); font: inherit; }
+  .controls input[type=search] { flex: 1 1 260px; }
+  .chips { display: flex; gap: 6px; flex-wrap: wrap; }
+  .chip { border: 1px solid var(--line); background: var(--card); color: var(--muted); border-radius: 999px;
+          padding: 3px 10px; cursor: pointer; font: inherit; font-size: 12.5px; }
+  .chip.on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+  .toggle { color: var(--muted); font-size: 12.5px; display: flex; gap: 4px; align-items: center; cursor: pointer; }
+  #count { margin-left: auto; color: var(--muted); font-size: 12.5px; }
+  main { padding: 16px 24px 8px; display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 14px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px;
+          display: flex; flex-direction: column; gap: 8px; }
+  .card.applied { opacity: 0.55; }
+  .top { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; font-size: 13px; }
+  .company { font-weight: 600; }
+  .badge { font-size: 11.5px; padding: 1px 8px; border-radius: 999px; background: var(--chip); color: var(--muted); white-space: nowrap; }
+  .badge.new-grad { background: var(--ng-bg); color: var(--ng); font-weight: 600; }
+  .badge.entry { background: var(--en-bg); color: var(--en); font-weight: 600; }
+  .badge.unspecified { background: var(--un-bg); color: var(--un); }
+  .badge.experienced { background: var(--ex-bg); color: var(--ex); }
+  .badge.senior { background: var(--sr-bg); color: var(--sr); font-weight: 600; }
+  .badge.new { background: var(--new-bg); color: var(--new); font-weight: 700; }
+  .card h3 { margin: 0; font-size: 16px; line-height: 1.3; }
+  .card h3 a { color: var(--text); text-decoration: none; }
+  .card h3 a:hover { text-decoration: underline; }
+  .meta { display: flex; flex-wrap: wrap; gap: 4px 12px; color: var(--muted); font-size: 13px; align-items: center; }
+  .meta .pay { color: var(--text); font-weight: 500; }
+  .reqs { margin: 0; padding-left: 18px; font-size: 13px; }
+  .reqs li { margin: 2px 0; }
+  details.desc summary { cursor: pointer; color: var(--accent); font-size: 13px; }
+  details.desc div { white-space: pre-wrap; font-size: 13px; max-height: 380px; overflow: auto; margin-top: 6px;
+                     border-top: 1px solid var(--line); padding-top: 6px; }
+  .actions { margin-top: auto; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; padding-top: 4px; }
+  .btn { display: inline-block; padding: 6px 12px; border-radius: 8px; border: 1px solid var(--line);
+         color: var(--text); text-decoration: none; font-size: 13px; background: var(--card); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); font-weight: 600; }
+  .btn:hover { filter: brightness(0.95); }
+  .applied-toggle { margin-left: auto; font-size: 12.5px; color: var(--muted); display: flex; gap: 4px; align-items: center; cursor: pointer; }
+  .empty { grid-column: 1 / -1; text-align: center; color: var(--muted); padding: 40px; }
+  section.panel { padding: 4px 24px 32px; }
+  h2 { font-size: 17px; margin: 18px 0 4px; }
+  .manual { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px; margin-top: 10px; }
+  .mcard { background: var(--card); border: 1px dashed var(--line); border-radius: 10px; padding: 10px 12px;
+           font-size: 13px; display: flex; flex-direction: column; gap: 4px; }
+  .mcard .why { color: var(--muted); flex: 1; }
+  details.all { margin-top: 18px; }
+  details.all summary { cursor: pointer; font-weight: 600; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; background: var(--card); margin-top: 8px; }
+  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  td a { color: var(--accent); }
+</style>
+</head>
+<body>
+<header>
+  <h1>AppGrab</h1>
+  <p class="sub" id="sub"></p>
+</header>
+<div class="controls">
+  <input type="search" id="q" placeholder="Filter by title, company, location, skill…" aria-label="Filter roles">
+  <select id="level" aria-label="Experience level"></select>
+  <select id="sort" aria-label="Sort">
+    <option value="match">Best match</option>
+    <option value="newest">Newest</option>
+    <option value="pay">Highest pay</option>
+    <option value="company">Company A–Z</option>
+  </select>
+  <div class="chips" id="cats" aria-label="Company type"></div>
+  <label class="toggle"><input type="checkbox" id="payOnly"> Has pay</label>
+  <label class="toggle"><input type="checkbox" id="newOnly"> New since last run</label>
+  <label class="toggle"><input type="checkbox" id="hideApplied"> Hide applied</label>
+  <span id="count"></span>
+</div>
+<main id="jobs"></main>
+<section class="panel">
+  <h2>Check these sites yourself</h2>
+  <p class="sub">These job boards block automated requests, load their jobs with JavaScript, or failed this run. Each link opens the company's own search.</p>
+  <div class="manual" id="manual"></div>
+  <details class="all">
+    <summary>All companies</summary>
+    <table>
+      <thead><tr><th>Company</th><th>Type</th><th>Platform</th><th>Roles</th><th>Status</th><th>Site</th></tr></thead>
+      <tbody id="companies"></tbody>
+    </table>
+  </details>
+</section>
+<script id="data" type="application/json">__APPGRAB_DATA__</script>
+<script>
+"use strict";
+const D = JSON.parse(document.getElementById("data").textContent);
+const MAX_YEARS = Number.isInteger(D.max_years) ? D.max_years : 1;
+const LEVEL_LABEL = { "new-grad": "New grad", entry: `≤${MAX_YEARS} yr${MAX_YEARS === 1 ? "" : "s"}`,
+  unspecified: "Not stated", experienced: "More experience", senior: "Senior+" };
+// Dropdown presets: [value, label, levels shown]
+const LEVEL_PRESETS = [
+  ["junior", `New grad + ${LEVEL_LABEL.entry}`, ["new-grad", "entry"]],
+  ["new-grad", "New grad only", ["new-grad"]],
+  ["open", `New grad, ${LEVEL_LABEL.entry} + not stated`, ["new-grad", "entry", "unspecified"]],
+  ["mid", `${MAX_YEARS + 1}+ years`, ["experienced"]],
+  ["senior", "Senior / Staff / Principal", ["senior"]],
+  ["all", "All levels", ["new-grad", "entry", "unspecified", "experienced", "senior"]],
+];
+const PRESET = Object.fromEntries(LEVEL_PRESETS.map(([value, , levels]) => [value, new Set(levels)]));
+const CATS = [["major", "Major"], ["big-tech", "Big tech"], ["eda-ip", "EDA & IP"], ["startup", "Startups"], ["ai-chip-design", "AI chip design"]];
+const CAT_LABEL = Object.fromEntries(CATS);
+const RANK = { "new-grad": 0, entry: 1, unspecified: 2, experienced: 3, senior: 4 };
+const store = {
+  get(k, d) { try { const v = JSON.parse(localStorage.getItem("appgrab." + k)); return v === null ? d : v; } catch { return d; } },
+  set(k, v) { try { localStorage.setItem("appgrab." + k, JSON.stringify(v)); } catch { /* storage disabled */ } },
+};
+const applied = new Set(store.get("applied", []));
+const savedLevel = store.get("level", "junior");
+const st = {
+  q: "", sort: store.get("sort", "match"),
+  level: PRESET[savedLevel] ? savedLevel : "junior",
+  cats: new Set(store.get("cats", CATS.map(c => c[0]))),
+  payOnly: false, newOnly: false, hideApplied: store.get("hideApplied", false),
+};
+for (const j of D.jobs) j.hay = [j.title, j.company, j.location, j.requirements.join(" "), j.description].join(" ").toLowerCase();
+
+function el(tag, attrs = {}, ...kids) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (v === null || v === undefined || v === false) continue;
+    if (k === "class") e.className = v; else if (k === "text") e.textContent = v; else e.setAttribute(k, v);
+  }
+  for (const kid of kids) if (kid !== null && kid !== undefined) e.append(kid);
+  return e;
+}
+const safeUrl = u => /^https?:\/\//i.test(u || "") ? u : "#";
+const link = (href, text, cls) => el("a", { href: safeUrl(href), target: "_blank", rel: "noopener", class: cls, text });
+const fmtDate = iso => new Date(iso + "T00:00:00").toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+const short = (s, n) => s.length > n ? s.slice(0, n - 1) + "…" : s;
+
+function levelText(j) {
+  if (j.years === null || j.years === undefined || !["entry", "experienced"].includes(j.level)) return LEVEL_LABEL[j.level];
+  return j.years === 0 ? "0 yrs" : `${j.years}+ yr${j.years === 1 ? "" : "s"}`;
+}
+
+function chips(box, items, set, key) {
+  for (const [val, label] of items) {
+    const n = D.jobs.filter(j => j.category === val).length;
+    const b = el("button", { type: "button", class: "chip" + (set.has(val) ? " on" : ""), text: `${label} ${n}` });
+    b.addEventListener("click", () => {
+      set.has(val) ? set.delete(val) : set.add(val);
+      b.classList.toggle("on");
+      store.set(key, [...set]);
+      render();
+    });
+    box.append(b);
+  }
+}
+
+function visible(j) {
+  if (!PRESET[st.level].has(j.level) || !st.cats.has(j.category)) return false;
+  if ((st.payOnly && !j.pay) || (st.newOnly && !j.new) || (st.hideApplied && applied.has(j.key))) return false;
+  return !st.q || st.q.split(/\s+/).every(w => j.hay.includes(w));
+}
+
+const SORTS = {
+  match: (a, b) => RANK[a.level] - RANK[b.level] || (b.posted || "").localeCompare(a.posted || ""),
+  newest: (a, b) => (b.posted || "").localeCompare(a.posted || ""),
+  pay: (a, b) => (b.pay_max || 0) - (a.pay_max || 0),
+  company: (a, b) => a.company.localeCompare(b.company) || a.title.localeCompare(b.title),
+};
+
+function card(j) {
+  const c = el("article", { class: "card" + (applied.has(j.key) ? " applied" : "") });
+  c.append(el("div", { class: "top" },
+    el("span", { class: "company", text: j.company }),
+    el("span", { class: "badge", text: CAT_LABEL[j.category] || j.category }),
+    j.new ? el("span", { class: "badge new", text: "NEW" }) : null));
+  c.append(el("h3", {}, link(j.url, j.title)));
+  const meta = el("div", { class: "meta" }, el("span", { class: "badge " + j.level, text: levelText(j) }));
+  if (j.location) meta.append(el("span", { text: "📍 " + short(j.location, 90), title: j.location }));
+  if (j.pay) meta.append(el("span", { class: "pay", text: "💵 " + j.pay }));
+  if (j.posted) meta.append(el("span", { text: "🗓 " + fmtDate(j.posted) }));
+  if (j.workplace) meta.append(el("span", { text: j.workplace }));
+  c.append(meta);
+  if (j.requirements.length) {
+    const ul = el("ul", { class: "reqs" });
+    for (const r of j.requirements.slice(0, 4)) ul.append(el("li", { text: r }));
+    c.append(ul);
+  }
+  if (j.description) {
+    const d = el("details", { class: "desc" }, el("summary", { text: "Full description" }));
+    d.addEventListener("toggle", () => { if (d.open && d.children.length === 1) d.append(el("div", { text: j.description })); });
+    c.append(d);
+  }
+  const box = el("input", { type: "checkbox" });
+  box.checked = applied.has(j.key);
+  box.addEventListener("change", () => {
+    box.checked ? applied.add(j.key) : applied.delete(j.key);
+    store.set("applied", [...applied]);
+    c.classList.toggle("applied", box.checked);
+    if (st.hideApplied) render();
+  });
+  c.append(el("div", { class: "actions" }, link(j.apply_url, "Apply ↗", "btn primary"), link(j.url, "View posting", "btn"),
+    el("label", { class: "applied-toggle" }, box, "Applied")));
+  return c;
+}
+
+function render() {
+  const list = D.jobs.filter(visible).sort(SORTS[st.sort] || SORTS.match);
+  const main = document.getElementById("jobs");
+  main.replaceChildren(...(list.length ? list.map(card) : [el("div", { class: "empty", text: "No roles match these filters." })]));
+  document.getElementById("count").textContent = `${list.length} of ${D.jobs.length} roles shown`;
+}
+
+function renderCompanies() {
+  const manual = D.companies.filter(c => c.status !== "ok");
+  document.getElementById("manual").replaceChildren(...manual.map(c => el("div", { class: "mcard" },
+    el("strong", { text: c.name }), el("span", { class: "why", text: c.message }),
+    c.link ? link(c.link, "Search on site ↗") : el("span", { class: "why", text: "No careers link" }))));
+  document.getElementById("companies").replaceChildren(...D.companies.map(c => el("tr", {},
+    el("td", { text: c.name }), el("td", { text: CAT_LABEL[c.category] || c.category }), el("td", { text: c.platform }),
+    el("td", { text: c.status === "ok" ? String(c.count) : "–" }),
+    el("td", { text: c.status === "ok" ? `${c.checked} postings checked` : c.message }),
+    el("td", {}, c.link ? link(c.link, "Open ↗") : null))));
+}
+
+function init() {
+  const scraped = D.companies.filter(c => c.status === "ok").length;
+  document.getElementById("sub").textContent =
+    `${D.role} · ${D.jobs.length} roles from ${scraped} of ${D.companies.length} companies · updated ${new Date(D.generated).toLocaleString()}`;
+  const levelSelect = document.getElementById("level");
+  for (const [value, label, levels] of LEVEL_PRESETS) {
+    const n = D.jobs.filter(j => levels.includes(j.level)).length;
+    levelSelect.append(el("option", { value, text: `${label} (${n})` }));
+  }
+  levelSelect.value = st.level;
+  levelSelect.addEventListener("change", () => { st.level = levelSelect.value; store.set("level", st.level); render(); });
+  chips(document.getElementById("cats"), CATS, st.cats, "cats");
+  const q = document.getElementById("q"), sort = document.getElementById("sort");
+  q.addEventListener("input", () => { st.q = q.value.trim().toLowerCase(); render(); });
+  sort.value = st.sort;
+  sort.addEventListener("change", () => { st.sort = sort.value; store.set("sort", st.sort); render(); });
+  for (const id of ["payOnly", "newOnly", "hideApplied"]) {
+    const box = document.getElementById(id);
+    box.checked = st[id];
+    box.addEventListener("change", () => { st[id] = box.checked; if (id === "hideApplied") store.set(id, box.checked); render(); });
+  }
+  render();
+  renderCompanies();
+}
+init();
+</script>
+</body>
+</html>
