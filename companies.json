@@ -1,16 +1,10 @@
 {
-  "_readme": "Job-board URLs filled in and checked in Oct 2026. To add a company or fix a URL, see COMPANIES_GUIDE.md",
-  "search": {
-    "role": "ASIC Design Verification",
-    "keywords": [
-      "design verification",
-      "verification engineer",
-      "ASIC verification",
-      "SoC verification",
-      "pre-silicon validation",
-      "formal verification",
-      "UVM"
+  "_readme": "Settings shared by every search, the saved searches, and the job boards to search. See README.md (searches) and COMPANIES_GUIDE.md (companies).",
+  "settings": {
+    "locations": [
+      "United States"
     ],
+    "max_years_experience": 1,
     "entry_level_terms": [
       "new grad",
       "new college grad",
@@ -25,7 +19,6 @@
       "engineer I",
       "engineer 1"
     ],
-    "max_years_experience": 1,
     "senior_title_terms": [
       "senior",
       "sr",
@@ -41,11 +34,23 @@
       "director",
       "intern",
       "co-op"
-    ],
-    "locations": [
-      "United States"
     ]
   },
+  "searches": [
+    {
+      "name": "ASIC Design Verification",
+      "preset": "design-verification",
+      "keywords": [
+        "design verification",
+        "verification engineer",
+        "ASIC verification",
+        "SoC verification",
+        "pre-silicon validation",
+        "formal verification",
+        "UVM"
+      ]
+    }
+  ],
   "companies": [
     {
       "name": "NVIDIA",

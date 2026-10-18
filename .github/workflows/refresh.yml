@@ -4,6 +4,15 @@ on:
   schedule:
     - cron: "0 13 * * *"  # daily, about 6 AM Pacific
   workflow_dispatch:      # "Run workflow" button on the Actions tab
+    inputs:
+      keywords:
+        description: "Optional one-off search shown next to the saved ones, e.g. physical design, place and route (comma-separated)"
+        required: false
+        default: ""
+      anywhere:
+        description: "For the one-off search: also match the keywords in job descriptions (slower)"
+        type: boolean
+        default: false
   push:
     branches: [main]      # e.g. after editing companies.json
 
@@ -29,7 +38,22 @@ jobs:
           fi
 
       - name: Search the job boards
-        run: python3 appgrab.py --no-open --out site/index.html
+        env:  # passed as variables, never pasted into the script, so input text can't run as code
+          KEYWORDS: ${{ inputs.keywords }}
+          ANYWHERE: ${{ inputs.anywhere }}
+        run: |
+          args=(--no-open --out site/index.html)
+          one_off=()
+          IFS=',' read -ra words <<< "$KEYWORDS"
+          for w in "${words[@]}"; do
+            w="$(printf '%s' "$w" | sed 's/^[[:space:]]*//; s/[[:space:]]*$//')"
+            if [ -n "$w" ]; then one_off+=("$w"); fi
+          done
+          if [ ${#one_off[@]} -gt 0 ]; then
+            args+=(--with-saved --search "${one_off[@]}")
+            if [ "$ANYWHERE" = "true" ]; then args+=(--anywhere); fi
+          fi
+          python3 appgrab.py "${args[@]}"
 
       # Kept on its own single-commit branch so main stays clean. Pushing it daily also counts as
       # repository activity, which stops GitHub from pausing the schedule after 60 quiet days.

@@ -2,7 +2,7 @@
 
 [companies.json](./companies.json) contains:
 
-- the **search settings** for ASIC Design Verification roles in the US (the results page shows new grad / 0–1 years by default and can switch to senior levels), and
+- the **settings and saved searches** (ASIC Design Verification roles in the US to start with; the results page shows new grad / 0–1 years by default and can switch to senior levels), and
 - **78 companies**: major chipmakers, big-tech silicon teams, EDA/IP vendors, chip startups, and AI-for-chip-design startups.
 
 **The job-board URLs are already filled in and were checked against each site's live job listings in October 2026.** Use this guide when you want to add a company or fix a URL that stops working.
@@ -83,15 +83,16 @@ Use this to check that you've reached the real job board. You don't need to writ
 
 ---
 
-## 3. Search settings (already done)
+## 3. Settings and searches (already done)
 
-The `search` block at the top of the file is set up for ASIC DV roles in the US. You only need to touch it if you want something different:
+Above the companies, `companies.json` has two more blocks. You only need to touch them if you want something different.
 
-- `keywords`: what gets searched on each site.
-- `entry_level_terms` and `max_years_experience`: how the script decides a role is new-grad / 0–1 years. It checks the title and the "X+ years" wording in the description.
-- `senior_title_terms`: titles containing any of these (Senior, Staff, Principal, ...) are labeled senior. The results page hides them unless you pick a senior level in its dropdown.
-- `exclude_title_terms`: titles containing any of these are skipped. Remove `"intern"` and `"co-op"` if you also want internships.
-- `locations`: change to specific states/cities (e.g. `["CA", "TX", "Remote"]`) or add more countries.
+- **`settings`** applies to every search:
+  - `entry_level_terms` and `max_years_experience`: how the script decides a role is new-grad / 0–1 years. It checks the title and the "X+ years" wording in the description.
+  - `senior_title_terms`: titles containing any of these (Senior, Staff, Principal, ...) are labeled senior. The results page hides them unless you pick a senior level in its dropdown.
+  - `exclude_title_terms`: titles containing any of these are skipped. Remove `"intern"` and `"co-op"` if you also want internships.
+  - `locations`: change to specific states/cities (e.g. `["CA", "TX", "Remote"]`) or add more countries.
+- **`searches`** lists the saved searches (ASIC Design Verification to start with). Each has a `name` and the `keywords` sent to every site. See "Saved searches" in [README.md](./README.md) to add more, e.g. physical design.
 
 ---
 
@@ -134,7 +135,7 @@ Fill in the attached companies.json. For every object in "companies" whose
    say so here and leave the URLs as "".
 
 Only use URLs you actually opened and confirmed show a job list. Never guess or
-construct a URL. Do not change "search", "name", or "category", and leave entries
+construct a URL. Do not change "settings", "searches", "name", or "category", and leave entries
 that already have a careers_url as they are. Return only the complete, valid JSON
 file with no commentary.
 ```

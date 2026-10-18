@@ -86,6 +86,7 @@
   <p class="sub" id="sub"></p>
 </header>
 <div class="controls">
+  <select id="search" aria-label="Search" hidden></select>
   <input type="search" id="q" placeholder="Filter by title, company, location, skill…" aria-label="Filter roles">
   <select id="level" aria-label="Experience level"></select>
   <select id="sort" aria-label="Sort">
@@ -138,13 +139,15 @@ const store = {
   set(k, v) { try { localStorage.setItem("appgrab." + k, JSON.stringify(v)); } catch { /* storage disabled */ } },
 };
 const applied = new Set(store.get("applied", []));
-const savedLevel = store.get("level", "junior");
+const savedLevel = store.get("level", "junior"), savedSearch = store.get("search", "");
 const st = {
+  search: D.searches.some(s => s.slug === savedSearch) ? savedSearch : D.searches[0].slug,
   q: "", sort: store.get("sort", "match"),
   level: PRESET[savedLevel] ? savedLevel : "junior",
   cats: new Set(store.get("cats", CATS.map(c => c[0]))),
   payOnly: false, newOnly: false, hideApplied: store.get("hideApplied", false),
 };
+const inSearch = () => D.jobs.filter(j => j.search === st.search);
 for (const j of D.jobs) j.hay = [j.title, j.company, j.location, j.requirements.join(" "), j.description].join(" ").toLowerCase();
 
 function el(tag, attrs = {}, ...kids) {
@@ -168,8 +171,7 @@ function levelText(j) {
 
 function chips(box, items, set, key) {
   for (const [val, label] of items) {
-    const n = D.jobs.filter(j => j.category === val).length;
-    const b = el("button", { type: "button", class: "chip" + (set.has(val) ? " on" : ""), text: `${label} ${n}` });
+    const b = el("button", { type: "button", class: "chip" + (set.has(val) ? " on" : ""), "data-val": val, "data-label": label });
     b.addEventListener("click", () => {
       set.has(val) ? set.delete(val) : set.add(val);
       b.classList.toggle("on");
@@ -180,9 +182,27 @@ function chips(box, items, set, key) {
   }
 }
 
+// Counts, header and title all follow the selected search.
+function refreshCounts() {
+  const jobs = inSearch();
+  for (const opt of document.getElementById("level").options) {
+    const [, label, levels] = LEVEL_PRESETS.find(p => p[0] === opt.value);
+    opt.textContent = `${label} (${jobs.filter(j => levels.includes(j.level)).length})`;
+  }
+  for (const b of document.querySelectorAll("#cats .chip")) {
+    b.textContent = `${b.dataset.label} ${jobs.filter(j => j.category === b.dataset.val).length}`;
+  }
+  const s = D.searches.find(x => x.slug === st.search);
+  const comps = D.companies.filter(c => c.search === st.search);
+  const scraped = comps.filter(c => c.status === "ok").length;
+  document.getElementById("sub").textContent = `${s.name}${s.one_off ? " (one-off search)" : ""} · ` +
+    `${jobs.length} roles from ${scraped} of ${comps.length} companies · updated ${new Date(D.generated).toLocaleString()}`;
+  document.title = `AppGrab · ${s.name}`;
+}
+
 function visible(j) {
-  if (!PRESET[st.level].has(j.level) || !st.cats.has(j.category)) return false;
-  if ((st.payOnly && !j.pay) || (st.newOnly && !j.new) || (st.hideApplied && applied.has(j.key))) return false;
+  if (j.search !== st.search || !PRESET[st.level].has(j.level) || !st.cats.has(j.category)) return false;
+  if ((st.payOnly && !j.pay) || (st.newOnly && !j.new) || (st.hideApplied && applied.has(j.uid))) return false;
   return !st.q || st.q.split(/\s+/).every(w => j.hay.includes(w));
 }
 
@@ -194,7 +214,7 @@ const SORTS = {
 };
 
 function card(j) {
-  const c = el("article", { class: "card" + (applied.has(j.key) ? " applied" : "") });
+  const c = el("article", { class: "card" + (applied.has(j.uid) ? " applied" : "") });
   c.append(el("div", { class: "top" },
     el("span", { class: "company", text: j.company }),
     el("span", { class: "badge", text: CAT_LABEL[j.category] || j.category }),
@@ -217,9 +237,9 @@ function card(j) {
     c.append(d);
   }
   const box = el("input", { type: "checkbox" });
-  box.checked = applied.has(j.key);
+  box.checked = applied.has(j.uid);
   box.addEventListener("change", () => {
-    box.checked ? applied.add(j.key) : applied.delete(j.key);
+    box.checked ? applied.add(j.uid) : applied.delete(j.uid);
     store.set("applied", [...applied]);
     c.classList.toggle("applied", box.checked);
     if (st.hideApplied) render();
@@ -233,15 +253,16 @@ function render() {
   const list = D.jobs.filter(visible).sort(SORTS[st.sort] || SORTS.match);
   const main = document.getElementById("jobs");
   main.replaceChildren(...(list.length ? list.map(card) : [el("div", { class: "empty", text: "No roles match these filters." })]));
-  document.getElementById("count").textContent = `${list.length} of ${D.jobs.length} roles shown`;
+  document.getElementById("count").textContent = `${list.length} of ${inSearch().length} roles shown`;
 }
 
 function renderCompanies() {
-  const manual = D.companies.filter(c => c.status !== "ok");
+  const comps = D.companies.filter(c => c.search === st.search);
+  const manual = comps.filter(c => c.status !== "ok");
   document.getElementById("manual").replaceChildren(...manual.map(c => el("div", { class: "mcard" },
     el("strong", { text: c.name }), el("span", { class: "why", text: c.message }),
     c.link ? link(c.link, "Search on site ↗") : el("span", { class: "why", text: "No careers link" }))));
-  document.getElementById("companies").replaceChildren(...D.companies.map(c => el("tr", {},
+  document.getElementById("companies").replaceChildren(...comps.map(c => el("tr", {},
     el("td", { text: c.name }), el("td", { text: CAT_LABEL[c.category] || c.category }), el("td", { text: c.platform }),
     el("td", { text: c.status === "ok" ? String(c.count) : "–" }),
     el("td", { text: c.status === "ok" ? `${c.checked} postings checked` : c.message }),
@@ -249,14 +270,22 @@ function renderCompanies() {
 }
 
 function init() {
-  const scraped = D.companies.filter(c => c.status === "ok").length;
-  document.getElementById("sub").textContent =
-    `${D.role} · ${D.jobs.length} roles from ${scraped} of ${D.companies.length} companies · updated ${new Date(D.generated).toLocaleString()}`;
-  const levelSelect = document.getElementById("level");
-  for (const [value, label, levels] of LEVEL_PRESETS) {
-    const n = D.jobs.filter(j => levels.includes(j.level)).length;
-    levelSelect.append(el("option", { value, text: `${label} (${n})` }));
+  const searchSelect = document.getElementById("search");
+  for (const s of D.searches) {
+    const n = D.jobs.filter(j => j.search === s.slug).length;
+    searchSelect.append(el("option", { value: s.slug, text: `${s.name}${s.one_off ? " (one-off)" : ""} (${n})` }));
   }
+  searchSelect.hidden = D.searches.length < 2;
+  searchSelect.value = st.search;
+  searchSelect.addEventListener("change", () => {
+    st.search = searchSelect.value;
+    store.set("search", st.search);
+    refreshCounts();
+    render();
+    renderCompanies();
+  });
+  const levelSelect = document.getElementById("level");
+  for (const [value, label] of LEVEL_PRESETS) levelSelect.append(el("option", { value, text: label }));
   levelSelect.value = st.level;
   levelSelect.addEventListener("change", () => { st.level = levelSelect.value; store.set("level", st.level); render(); });
   chips(document.getElementById("cats"), CATS, st.cats, "cats");
@@ -269,6 +298,7 @@ function init() {
     box.checked = st[id];
     box.addEventListener("change", () => { st[id] = box.checked; if (id === "hideApplied") store.set(id, box.checked); render(); });
   }
+  refreshCounts();
   render();
   renderCompanies();
 }

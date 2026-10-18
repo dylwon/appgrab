@@ -1,11 +1,14 @@
-"""Decide which postings are design-verification roles in the wanted locations, and how junior they are."""
+"""Decide which postings match a search, whether they're in the wanted locations, and how senior they are."""
 import re
 import threading
 
 from sources.common import (extract_requirements, html_lines, lines_to_text, min_years, parse_pay,
                             text_lines)
 
-# Titles that are DV even when the configured keywords don't spell them out exactly.
+STOPWORDS = {"and", "or", "of", "the", "a", "an", "for", "in", "with", "to"}
+
+# ---------- "design-verification" preset ----------
+# Titles that are DV even when the keywords don't spell them out exactly.
 DV_TITLE = re.compile(r"verif|pre-?\s?silicon|presilicon|\bDV\b|\bUVM\b", re.I)
 # Hardware-flavoured titles that *might* be DV (e.g. Qualcomm's "Hardware Engineer"); they need
 # verification evidence in the description to be kept.
@@ -13,8 +16,8 @@ HW_TITLE = re.compile(r"\b(asic|soc|silicon|hardware|hw|rtl|chip|digital|cpu|gpu
                       r"|emulation|memory|dram|serdes|pcie|ddr|dsp|mixed[- ]signal|ams|analog)\b", re.I)
 HARD_HW_TITLE = re.compile(r"\b(asic|soc|silicon|hardware|hw|rtl|chip|cpu|gpu|fpga|ip)\b", re.I)
 SOFTWARE_TITLE = re.compile(r"software|\bsw\b|firmware", re.I)
-NOT_DV_TITLE = re.compile(r"physical (?:design )?verification|identity|fraud|payment|\bkyc\b|sales|marketing|recruit"
-                          r"|legal|finance|clinical|regulatory|mechanical|technician", re.I)
+NOT_DV_TITLE = re.compile(r"physical (?:design )?verification|identity|fraud|payment|\bkyc\b|sales|marketing"
+                          r"|recruit|legal|finance|clinical|regulatory|mechanical|technician", re.I)
 POST_SILICON = re.compile(r"post-?\s?silicon", re.I)
 HW_TEXT = ["systemverilog", "verilog", "uvm", "rtl", "asic", "soc", "silicon", "testbench", "fpga",
            "hardware", "chip"]
@@ -23,6 +26,33 @@ DV_TEXT = ["design verification", "functional verification", "verification engin
            "constrained-random", "verification plan", "verification environment", "systemverilog assertion",
            "formal verification", "pre-silicon", "scoreboard"]
 
+
+class DesignVerification:
+    """Rules tuned for ASIC design-verification searches ("preset": "design-verification")."""
+
+    @staticmethod
+    def title_class(title, keyword_match):
+        if NOT_DV_TITLE.search(title):
+            return "reject"
+        if SOFTWARE_TITLE.search(title) and not HARD_HW_TITLE.search(title):
+            return "reject"
+        if POST_SILICON.search(title) and not re.search(r"pre-?\s?silicon|verif", title, re.I):
+            return "reject"
+        if keyword_match or DV_TITLE.search(title):
+            return "strong"
+        return "maybe" if HW_TITLE.search(title) else "reject"
+
+    @staticmethod
+    def accepts(verdict, title, low_text):
+        if verdict == "maybe":
+            return sum(t in low_text for t in DV_TEXT) >= 3
+        # A "verification" title with no hardware anywhere is something like identity verification.
+        return not low_text or bool(HARD_HW_TITLE.search(title)) or any(t in low_text for t in HW_TEXT)
+
+
+PRESETS = {"design-verification": DesignVerification}
+
+# ---------- Locations ----------
 US_STATES = {
     "AL": "alabama", "AK": "alaska", "AZ": "arizona", "AR": "arkansas", "CA": "california",
     "CO": "colorado", "CT": "connecticut", "DE": "delaware", "FL": "florida", "GA": "georgia",
@@ -58,25 +88,6 @@ NON_US = re.compile(
 MULTI = re.compile(r"^\s*\d+\s+locations?\s*$", re.I)
 
 
-class Settings:
-    """The "search" block of companies.json, with defaults."""
-
-    def __init__(self, search):
-        self.role = search.get("role", "")
-        self.keywords = search.get("keywords") or ["design verification"]
-        self.max_years = search.get("max_years_experience", 1)
-        self.locations = search.get("locations") or []
-        self.exclude = [_term_re(t, suffix=r"(?:s|ships?)?") for t in search.get("exclude_title_terms", [])]
-        self.senior = [_term_re(t, suffix=r"s?") for t in search.get("senior_title_terms", [])]
-        entry = search.get("entry_level_terms", [])
-        # Generic words ("junior", "associate", "engineer I") only count in the title; phrases also
-        # count in the description ("open to new grads").
-        self.entry_title = [_term_re(t) for t in entry]
-        self.entry_text = [_term_re(t) for t in entry if " " in t and not t.lower().startswith("engineer")
-                           or t.isupper()]
-        self.keyword_tokens = [set(_tokens(k)) for k in self.keywords]
-
-
 def _term_re(term, suffix=""):
     body = re.escape(term.strip()).replace(r"\ ", r"[\s-]+").replace(r"\-", r"[\s-]?")
     if term.lower().endswith("grad"):
@@ -86,22 +97,75 @@ def _term_re(term, suffix=""):
 
 
 def _tokens(text):
+    """Lower-cased words with simple plural folding, so "ASICs" matches "ASIC"."""
     text = re.sub(r"pre[\s-]+silicon", "presilicon", text.lower())
-    return re.findall(r"[a-z0-9]+", text)
+    words = []
+    for w in re.findall(r"[a-z0-9+#]+", text):
+        words.append(w[:-1] if len(w) > 3 and w.endswith("s") and not w.endswith("ss") else w)
+    return words
 
 
-def title_class(title, s):
-    """'strong' (clearly DV), 'weak' (hardware title, needs evidence), or 'reject'."""
-    if any(rx.search(title) for rx in s.exclude) or NOT_DV_TITLE.search(title):
-        return "reject"
-    if SOFTWARE_TITLE.search(title) and not HARD_HW_TITLE.search(title):
-        return "reject"
-    if POST_SILICON.search(title) and not re.search(r"pre-?\s?silicon|verif", title, re.I):
+class Settings:
+    """Settings shared by every search (the "settings" block of companies.json)."""
+
+    def __init__(self, block):
+        self.max_years = block.get("max_years_experience", 1)
+        self.locations = block.get("locations") or []
+        self.exclude = [_term_re(t, suffix=r"(?:s|ships?)?") for t in block.get("exclude_title_terms", [])]
+        self.senior = [_term_re(t, suffix=r"s?") for t in block.get("senior_title_terms", [])]
+        entry = block.get("entry_level_terms", [])
+        # Generic words ("junior", "associate", "engineer I") only count in the title; phrases also
+        # count in the description ("open to new grads").
+        self.entry_title = [_term_re(t) for t in entry]
+        self.entry_text = [_term_re(t) for t in entry if " " in t and not t.lower().startswith("engineer")
+                           or t.isupper()]
+
+
+class Search:
+    """One saved or one-off search: the keywords sent to each site, and how titles are judged."""
+
+    def __init__(self, spec, adhoc=False):
+        self.keywords = [k.strip() for k in spec.get("keywords") or [] if k.strip()]
+        if not self.keywords:
+            raise ValueError(f"search {spec.get('name')!r} has no keywords")
+        self.name = spec.get("name") or ", ".join(self.keywords)
+        self.slug = re.sub(r"[^a-z0-9]+", "-", self.name.lower()).strip("-") or "search"
+        self.adhoc = adhoc
+        self.match_description = bool(spec.get("match_description"))
+        self.preset = PRESETS.get(spec.get("preset") or "")
+        if spec.get("preset") and not self.preset:
+            raise ValueError(f"unknown preset {spec['preset']!r} (known: {', '.join(PRESETS)})")
+        self.exclude = [_term_re(t, suffix=r"(?:s|ships?)?") for t in spec.get("exclude_title_terms", [])]
+        self.keyword_tokens = [set(_tokens(k)) - STOPWORDS for k in self.keywords]
+        self.keyword_res = [_term_re(k) for k in self.keywords]
+
+
+def load(config):
+    """(settings, saved searches) from companies.json. Also reads the older layout, where a single
+    "search" block held both the settings and the design-verification keywords."""
+    block = config.get("settings") or config.get("search") or {}
+    specs = config.get("searches")
+    if specs is None and block.get("keywords"):
+        specs = [{"name": block.get("role") or "Saved search", "keywords": block["keywords"],
+                  "preset": "design-verification"}]
+    return Settings(block), [Search(spec) for spec in specs or []]
+
+
+def title_class(title, s, search):
+    """'strong' (title matches the search), 'maybe' (needs evidence in the description), or 'reject'."""
+    if any(rx.search(title) for rx in s.exclude) or any(rx.search(title) for rx in search.exclude):
         return "reject"
     words = set(_tokens(title))
-    if DV_TITLE.search(title) or any(t and t <= words for t in s.keyword_tokens):
+    keyword_match = any(t and t <= words for t in search.keyword_tokens)
+    if search.preset:
+        return search.preset.title_class(title, keyword_match)
+    if keyword_match:
         return "strong"
-    return "weak" if HW_TITLE.search(title) else "reject"
+    return "maybe" if search.match_description else "reject"
+
+
+def is_senior(title, s):
+    return any(rx.search(title) for rx in s.senior)
 
 
 def is_us(segment):
@@ -139,24 +203,20 @@ def location_ok(location, terms):
     return False
 
 
-def is_senior(title, s):
-    return any(rx.search(title) for rx in s.senior)
-
-
-def make_prefilter(s, weak_budget=25, senior_budget=15):
+def make_prefilter(s, search, maybe_budget=25, senior_budget=15):
     """Cheap title/location check adapters run before fetching job details. Caps how many 'maybe'
     titles (e.g. "Hardware Engineer") and senior titles a single company can send to the detail
     step, so they can't crowd entry-level roles out of the per-company limit."""
     lock = threading.Lock()
-    budgets, used = {"weak": weak_budget, "senior": senior_budget}, {"weak": 0, "senior": 0}
+    budgets, used = {"maybe": maybe_budget, "senior": senior_budget}, {"maybe": 0, "senior": 0}
 
     def prefilter(title, location):
-        verdict = title_class(title or "", s)
+        verdict = title_class(title or "", s, search)
         if verdict == "reject" or not location_ok(location or "", s.locations):
             return False
         senior = is_senior(title or "", s)
-        if senior and verdict == "weak":
-            return False  # senior roles only count when the title itself says verification
+        if senior and verdict == "maybe":
+            return False  # senior roles only count when the title itself matches
         kind = "senior" if senior else verdict
         if kind in budgets:
             with lock:
@@ -167,21 +227,20 @@ def make_prefilter(s, weak_budget=25, senior_budget=15):
     return prefilter
 
 
-def evaluate(job, s):
+def evaluate(job, s, search):
     """Return the job enriched with requirements/pay/level, or None if it isn't a wanted role."""
-    verdict = title_class(job["title"], s)
+    verdict = title_class(job["title"], s, search)
     if verdict == "reject" or not location_ok(job["location"], s.locations):
         return None
-    if verdict == "weak" and is_senior(job["title"], s):
+    if verdict == "maybe" and is_senior(job["title"], s):
         return None
     lines = html_lines(job["description_html"]) if job["description_html"] else text_lines(job["description"])
     text = lines_to_text(lines) or job["description"]
-    low = text.lower()
-    if verdict == "weak" and sum(t in low for t in DV_TEXT) < 3:
+    if search.preset:
+        if not search.preset.accepts(verdict, job["title"], text.lower()):
+            return None
+    elif verdict == "maybe" and not any(rx.search(text) for rx in search.keyword_res):
         return None
-    if verdict == "strong" and text and not HARD_HW_TITLE.search(job["title"]) \
-            and not any(t in low for t in HW_TEXT):
-        return None  # e.g. "Identity Verification" style roles
     reqs = job["requirements"] or extract_requirements(lines)
     years = min_years(reqs, text)
     pay, pay_max = parse_pay(job["pay"] or text)
