@@ -49,19 +49,21 @@ Each saved search adds a few minutes to every run.
 
 ## Shared link
 
-The page is published at **https://dylwon.github.io/appgrab/** for anyone to open. GitHub runs the saved searches on its own servers (`.github/workflows/refresh.yml`):
+The page is published at **https://dylwon.github.io/appgrab/** for anyone to open. GitHub runs AppGrab on its own servers (`.github/workflows/refresh.yml`, which runs `cloud.py`):
 
-- every day at about 6 AM Pacific,
-- whenever a change is pushed to `main` (for example an edited `companies.json`),
-- or on demand: on GitHub, open **Actions → Refresh job board → Run workflow**. That form also has a **keywords** box (comma-separated) for a one-off search. Its results appear in the Search dropdown next to the saved searches until the next scheduled run. To keep a search permanently, add it to `searches`.
+- **Every day at about 6 AM Pacific** it refreshes the saved searches.
+- **Anyone can search for another role from the page.** Click **+ New search**, type keywords, then click **Request search**. On the GitHub page that opens, click **Create** (a free GitHub account is needed). The search runs in about 5 minutes. The request gets a reply with a link and closes itself, and the page tracks it and switches to the results. You can also open an issue titled `Search: keyword, keyword` directly; add ` (also in descriptions)` at the end to match job descriptions too.
+- **Requested searches stay in the Search dropdown for 14 days.** Asking for one again within a day just shows the existing results. At most 3 requests run at a time; the rest wait for the next run.
+- **Actions → Refresh job board → Run workflow** refreshes the saved searches right away. If you type keywords in that form, it runs a one-off search instead.
+- **Pushing to `main` rebuilds the page from the stored results without searching again.** For example, editing `template.html` takes effect immediately. A saved search newly added to `companies.json` is searched right away.
 
-Each viewer's **Applied** checkmarks are stored in their own browser. NEW badges compare against the previous cloud run, which is remembered on the `appgrab-state` branch. Some job sites block cloud servers, so a few companies can end up under "Check these sites yourself" on the shared page even when a run on your own PC reads them fine.
+Results and NEW-badge history are stored on the `appgrab-state` branch. Each viewer's **Applied** checkmarks are stored in their own browser. Some job sites block cloud servers, so a few companies can end up under "Check these sites yourself" on the shared page even when a run on your own PC reads them fine.
 
 One-time setup, already done for this repository: it must be public, and under **Settings → Pages → Build and deployment**, **Source** must be set to **GitHub Actions**.
 
 ## Using the page
 
-- The **Search dropdown** (shown when the page has more than one search) switches between searches. Everything below it follows the selected search.
+- The **Search dropdown** switches between searches: saved searches first, then recently requested ones with their date. Everything below it follows the selected search, and the address (`?search=...`) links straight to it. On the shared page, **+ New search** requests another one (see above).
 - The **level dropdown** picks which roles to show. It defaults to **New grad + ≤1 yr** and remembers your choice:
   - **New grad**: the posting says new grad, NCG, university graduate, early career, etc.
   - **≤1 yr**: it asks for at most `max_years_experience` years.
@@ -117,4 +119,5 @@ Pay comes from the site's salary fields when available, otherwise from salary ra
 | `companies.json` | Settings, saved searches, and the list of companies |
 | `jobs.html`, `jobs-*.html` | Generated results pages (not committed; the shared link is built by GitHub) |
 | `.appgrab_seen.json` | Remembers roles from earlier runs for the NEW badge |
-| `.github/workflows/refresh.yml` | Daily cloud run that publishes the shared link |
+| `.github/workflows/refresh.yml` | Cloud runs that publish the shared link (daily, on request, and on push) |
+| `cloud.py` | What a cloud run does: refresh saved searches, run requested searches, rebuild the page |

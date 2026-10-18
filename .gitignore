@@ -3,5 +3,6 @@ jobs.html
 jobs-*.html
 .appgrab_seen.json
 site/
+state/
 __pycache__/
 *.pyc

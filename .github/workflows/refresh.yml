@@ -2,73 +2,65 @@ name: Refresh job board
 
 on:
   schedule:
-    - cron: "0 13 * * *"  # daily, about 6 AM Pacific
-  workflow_dispatch:      # "Run workflow" button on the Actions tab
+    - cron: "0 13 * * *"  # daily, about 6 AM Pacific: refresh the saved searches
+  workflow_dispatch:      # "Run workflow" button: refresh the saved searches, or run a one-off search
     inputs:
       keywords:
-        description: "Optional one-off search shown next to the saved ones, e.g. physical design, place and route (comma-separated)"
+        description: "Optional one-off search instead of a refresh, e.g. physical design, place and route (comma-separated)"
         required: false
         default: ""
       anywhere:
         description: "For the one-off search: also match the keywords in job descriptions (slower)"
         type: boolean
         default: false
+  issues:
+    types: [opened]       # anyone can request a search by opening an issue titled "Search: ..."
   push:
-    branches: [main]      # e.g. after editing companies.json
-
-concurrency:
-  group: appgrab
-  cancel-in-progress: false
+    branches: [main]      # rebuilds the page from stored results; new saved searches run right away
 
 jobs:
   build:
+    # Other issues (questions, bug reports) don't start a run.
+    if: github.event_name != 'issues' || startsWith(github.event.issue.title, 'Search:')
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
+    concurrency:  # one run at a time; a queued run picks up every open search request
+      group: appgrab
+      cancel-in-progress: false
     permissions:
-      contents: write  # saves the "jobs already seen" history to the appgrab-state branch
+      contents: write  # stores results and history on the appgrab-state branch
+      issues: write    # replies to and closes search requests
     steps:
       - uses: actions/checkout@v7
 
-      - name: Restore history of jobs already seen
+      - name: Restore stored results
         run: |
+          mkdir -p state
           if git fetch --depth=1 origin appgrab-state 2>/dev/null; then
-            git show FETCH_HEAD:seen.json > .appgrab_seen.json
+            git archive FETCH_HEAD | tar -x -C state
           else
-            echo "No history yet - this run sets the baseline for NEW badges."
+            echo "No stored results yet."
           fi
 
-      - name: Search the job boards
-        env:  # passed as variables, never pasted into the script, so input text can't run as code
+      - name: Search and build the page
+        env:  # passed as variables, never pasted into a script, so typed text can't run as code
+          GITHUB_TOKEN: ${{ github.token }}
           KEYWORDS: ${{ inputs.keywords }}
           ANYWHERE: ${{ inputs.anywhere }}
-        run: |
-          args=(--no-open --out site/index.html)
-          one_off=()
-          IFS=',' read -ra words <<< "$KEYWORDS"
-          for w in "${words[@]}"; do
-            w="$(printf '%s' "$w" | sed 's/^[[:space:]]*//; s/[[:space:]]*$//')"
-            if [ -n "$w" ]; then one_off+=("$w"); fi
-          done
-          if [ ${#one_off[@]} -gt 0 ]; then
-            args+=(--with-saved --search "${one_off[@]}")
-            if [ "$ANYWHERE" = "true" ]; then args+=(--anywhere); fi
-          fi
-          python3 appgrab.py "${args[@]}"
+        run: python3 cloud.py
 
-      # Kept on its own single-commit branch so main stays clean. Pushing it daily also counts as
-      # repository activity, which stops GitHub from pausing the schedule after 60 quiet days.
-      - name: Save history of jobs seen
+      # Kept on its own single-commit branch so main stays clean. Pushing it on every run also counts
+      # as repository activity, which stops GitHub from pausing the schedule after 60 quiet days.
+      - name: Store results and history
         env:
           TOKEN: ${{ github.token }}
         run: |
-          state="$RUNNER_TEMP/state"
-          mkdir -p "$state" && cp .appgrab_seen.json "$state/seen.json"
-          cd "$state"
+          cd state
           git init -q -b appgrab-state
-          git add seen.json
+          git add -A
           git -c user.name="github-actions[bot]" \
               -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
-              commit -qm "Update jobs seen"
+              commit -qm "Update stored results"
           git push -qf "https://x-access-token:${TOKEN}@github.com/${GITHUB_REPOSITORY}.git" appgrab-state
 
       - uses: actions/configure-pages@v6

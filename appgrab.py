@@ -94,11 +94,12 @@ def status_line(r):
     return f"{r['name']}: {label} - {r['message']}"
 
 
-def mark_new(results, run_id):
+def mark_new(results, run_id, seen_file=SEEN_FILE):
     """Flag roles a search hasn't found on any earlier run. Nothing is 'new' the first time a search
     runs, since everything would be."""
+    seen_file = Path(seen_file)
     try:
-        seen = json.loads(SEEN_FILE.read_text(encoding="utf-8"))
+        seen = json.loads(seen_file.read_text(encoding="utf-8"))
     except (OSError, ValueError):
         seen = {}
     seen = {k: v for k, v in seen.items() if k.count("|") >= 2}  # drop keys from before per-search history
@@ -107,7 +108,8 @@ def mark_new(results, run_id):
         for j in r["jobs"]:
             first_seen = seen.setdefault(j["key"], run_id)
             j["new"] = r["search"] in searched_before and first_seen == run_id
-    SEEN_FILE.write_text(json.dumps(seen, indent=0, sort_keys=True), encoding="utf-8")
+    seen_file.parent.mkdir(parents=True, exist_ok=True)
+    seen_file.write_text(json.dumps(seen, indent=0, sort_keys=True), encoding="utf-8")
 
 
 def choose_searches(args, saved):
@@ -120,11 +122,46 @@ def choose_searches(args, saved):
     return searches + [adhoc]
 
 
+def load(config_path):
+    """(config, settings, saved searches) from a companies.json file."""
+    config = json.loads(Path(config_path).read_text(encoding="utf-8"))
+    settings, saved = filters.load(config)
+    return config, settings, saved
+
+
+def run(searches, companies, settings, args):
+    """Search every company for every search, printing progress. Returns one result per pair,
+    ordered by search, then by the companies' order in companies.json."""
+    tasks = [(s, c) for s in searches for c in companies]
+    results = []
+    with cf.ThreadPoolExecutor(max(1, args.workers)) as ex:
+        futures = {ex.submit(scrape, c, s, settings, args): s for s, c in tasks}
+        try:
+            for i, fut in enumerate(cf.as_completed(futures), 1):
+                results.append(fut.result())
+                label = f"[{futures[fut].name}] " if len(searches) > 1 else ""
+                print(f"[{i:>3}/{len(tasks)}] {label}{status_line(results[-1])}", flush=True)
+        except KeyboardInterrupt:
+            print("\nStopping early - saving what was found so far (finishing sites already in progress).")
+            ex.shutdown(cancel_futures=True)
+    order = {c["name"]: i for i, c in enumerate(companies)}
+    rank = {s.slug: i for i, s in enumerate(searches)}
+    results.sort(key=lambda r: (rank[r["search"]], order.get(r["name"], len(order))))
+    return results
+
+
+def summarize(searches, results):
+    for s in searches:
+        rs = [r for r in results if r["search"] == s.slug]
+        by_hand = sum(r["status"] != "ok" for r in rs)
+        print(f"{s.name}: {sum(len(r['jobs']) for r in rs)} roles from {len(rs) - by_hand} companies; "
+              f"{by_hand} sites to check by hand (listed at the bottom of the page).")
+
+
 def main(argv=None):
     sys.stdout.reconfigure(errors="replace")
     args = parse_args(argv)
-    config = json.loads(args.config.read_text(encoding="utf-8"))
-    settings, saved = filters.load(config)
+    config, settings, saved = load(args.config)
     searches = choose_searches(args, saved)
     if not searches:
         sys.exit('No searches to run: add one under "searches" in companies.json, or use --search.')
@@ -136,31 +173,14 @@ def main(argv=None):
         companies = [c for c in companies if any(w in c["name"].lower() for w in wanted)]
         if not companies:
             sys.exit(f"No company names contain: {', '.join(args.only)}")
-    tasks = [(s, c) for s in searches for c in companies]
     print(f"Searching {len(companies)} companies for: {'; '.join(s.name for s in searches)} ...")
-    started, results = time.time(), []
-    with cf.ThreadPoolExecutor(max(1, args.workers)) as ex:
-        futures = {ex.submit(scrape, c, s, settings, args): s for s, c in tasks}
-        try:
-            for i, fut in enumerate(cf.as_completed(futures), 1):
-                results.append(fut.result())
-                label = f"[{futures[fut].name}] " if len(searches) > 1 else ""
-                print(f"[{i:>3}/{len(tasks)}] {label}{status_line(results[-1])}", flush=True)
-        except KeyboardInterrupt:
-            print("\nStopping early - saving what was found so far (finishing sites already in progress).")
-            ex.shutdown(cancel_futures=True)
-    order = {c["name"]: i for i, c in enumerate(config.get("companies", []))}
-    rank = {s.slug: i for i, s in enumerate(searches)}
-    results.sort(key=lambda r: (rank[r["search"]], order.get(r["name"], len(order))))
-    run = dt.datetime.now().astimezone()
-    mark_new(results, run.isoformat(timespec="seconds"))
-    report.render(results, searches, settings, run, out)
+    started = time.time()
+    results = run(searches, companies, settings, args)
+    now = dt.datetime.now().astimezone()
+    mark_new(results, now.isoformat(timespec="seconds"))
+    report.render(report.build_payload(results, searches, settings, now), out)
     print()
-    for s in searches:
-        rs = [r for r in results if r["search"] == s.slug]
-        by_hand = sum(r["status"] != "ok" for r in rs)
-        print(f"{s.name}: {sum(len(r['jobs']) for r in rs)} roles from {len(rs) - by_hand} companies; "
-              f"{by_hand} sites to check by hand (listed at the bottom of the page).")
+    summarize(searches, results)
     print(f"Finished in {time.time() - started:.0f}s. Saved {out}")
     if not args.no_open:
         webbrowser.open(out.resolve().as_uri())

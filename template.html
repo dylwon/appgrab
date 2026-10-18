@@ -78,6 +78,15 @@
   table { width: 100%; border-collapse: collapse; font-size: 13px; background: var(--card); margin-top: 8px; }
   th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
   td a { color: var(--accent); }
+  .request { margin: 12px 24px 0; padding: 12px 16px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; }
+  .request .row { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; margin: 8px 0 4px; }
+  .request input[type=text] { flex: 1 1 320px; padding: 7px 11px; border: 1px solid var(--line); border-radius: 8px;
+                              background: var(--bg); color: var(--text); font: inherit; }
+  .request .sub { margin-top: 6px; }
+  #reqStatus:empty { display: none; }
+  #reqStatus { color: var(--text); }
+  #reqStatus button { margin-left: 6px; }
+  .btn { cursor: pointer; font: inherit; font-size: 13px; }
 </style>
 </head>
 <body>
@@ -87,6 +96,7 @@
 </header>
 <div class="controls">
   <select id="search" aria-label="Search" hidden></select>
+  <button type="button" id="newSearch" class="btn" hidden aria-expanded="false" aria-controls="requestPanel">+ New search</button>
   <input type="search" id="q" placeholder="Filter by title, company, location, skill…" aria-label="Filter roles">
   <select id="level" aria-label="Experience level"></select>
   <select id="sort" aria-label="Sort">
@@ -101,6 +111,18 @@
   <label class="toggle"><input type="checkbox" id="hideApplied"> Hide applied</label>
   <span id="count"></span>
 </div>
+<section class="request" id="requestPanel" hidden>
+  <form id="requestForm">
+    <label for="reqKeywords"><strong>Search for any role.</strong> Keywords, separated by commas:</label>
+    <div class="row">
+      <input id="reqKeywords" type="text" maxlength="320" placeholder="e.g. physical design, place and route" autocomplete="off">
+      <label class="toggle"><input type="checkbox" id="reqAnywhere"> Also match job descriptions</label>
+      <button class="btn primary" type="submit">Request search ↗</button>
+    </div>
+    <p class="sub">Searches run on GitHub and take about 5 minutes. A GitHub page opens with your request filled in: sign in (a free account works) and click <strong>Create</strong>. When it finishes, the search shows up in the Search dropdown for everyone.</p>
+    <p class="sub" id="reqStatus" role="status"></p>
+  </form>
+</section>
 <main id="jobs"></main>
 <section class="panel">
   <h2>Check these sites yourself</h2>
@@ -139,9 +161,12 @@ const store = {
   set(k, v) { try { localStorage.setItem("appgrab." + k, JSON.stringify(v)); } catch { /* storage disabled */ } },
 };
 const applied = new Set(store.get("applied", []));
-const savedLevel = store.get("level", "junior"), savedSearch = store.get("search", "");
+const savedLevel = store.get("level", "junior");
+const hasSearch = slug => D.searches.some(s => s.slug === slug);
 const st = {
-  search: D.searches.some(s => s.slug === savedSearch) ? savedSearch : D.searches[0].slug,
+  // A ?search= link (e.g. from a request's reply) wins over the last search you looked at.
+  search: [new URLSearchParams(location.search).get("search"), store.get("search", "")].find(hasSearch)
+    || (D.searches[0] || {}).slug || "",
   q: "", sort: store.get("sort", "match"),
   level: PRESET[savedLevel] ? savedLevel : "junior",
   cats: new Set(store.get("cats", CATS.map(c => c[0]))),
@@ -193,10 +218,15 @@ function refreshCounts() {
     b.textContent = `${b.dataset.label} ${jobs.filter(j => j.category === b.dataset.val).length}`;
   }
   const s = D.searches.find(x => x.slug === st.search);
+  if (!s) {
+    document.getElementById("sub").textContent = "No searches yet.";
+    return;
+  }
   const comps = D.companies.filter(c => c.search === st.search);
   const scraped = comps.filter(c => c.status === "ok").length;
-  document.getElementById("sub").textContent = `${s.name}${s.one_off ? " (one-off search)" : ""} · ` +
-    `${jobs.length} roles from ${scraped} of ${comps.length} companies · updated ${new Date(D.generated).toLocaleString()}`;
+  const custom = s.kind === "custom" || s.one_off ? " (custom search)" : "";
+  document.getElementById("sub").textContent = `${s.name}${custom} · ${jobs.length} roles from ${scraped} of ` +
+    `${comps.length} companies · updated ${new Date(s.generated || D.generated).toLocaleString()}`;
   document.title = `AppGrab · ${s.name}`;
 }
 
@@ -269,21 +299,142 @@ function renderCompanies() {
     el("td", {}, c.link ? link(c.link, "Open ↗") : null))));
 }
 
-function init() {
-  const searchSelect = document.getElementById("search");
-  for (const s of D.searches) {
-    const n = D.jobs.filter(j => j.search === s.slug).length;
-    searchSelect.append(el("option", { value: s.slug, text: `${s.name}${s.one_off ? " (one-off)" : ""} (${n})` }));
+const shortDate = iso => new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+const kindOf = s => s.kind || (s.one_off ? "custom" : "saved");
+
+function selectSearch(slug) {
+  st.search = slug;
+  store.set("search", slug);
+  document.getElementById("search").value = slug;
+  try {  // keep the address shareable: ?search=<slug>
+    const url = new URL(location.href);
+    url.searchParams.set("search", slug);
+    history.replaceState(null, "", url);
+  } catch { /* some browsers block this for local files */ }
+  refreshCounts();
+  render();
+  renderCompanies();
+}
+
+function setupSearchSelect() {
+  const select = document.getElementById("search");
+  for (const [kind, label] of [["saved", "Saved searches"], ["custom", "Recent custom searches"]]) {
+    const items = D.searches.filter(s => kindOf(s) === kind);
+    if (!items.length) continue;
+    const group = el("optgroup", { label });
+    for (const s of items) {
+      const n = D.jobs.filter(j => j.search === s.slug).length;
+      const when = kind === "custom" ? ` · ${shortDate(s.generated || D.generated)}` : "";
+      group.append(el("option", { value: s.slug, text: `${s.name} (${n})${when}` }));
+    }
+    select.append(group);
   }
-  searchSelect.hidden = D.searches.length < 2;
-  searchSelect.value = st.search;
-  searchSelect.addEventListener("change", () => {
-    st.search = searchSelect.value;
-    store.set("search", st.search);
-    refreshCounts();
-    render();
-    renderCompanies();
-  });
+  select.hidden = D.searches.length < 2 && !D.repo;
+  select.value = st.search;
+  select.addEventListener("change", () => selectSearch(select.value));
+}
+
+// ---------- Requesting a new search (shared page only) ----------
+// Anyone with a GitHub account can open an issue titled "Search: ..."; the workflow runs the search,
+// replies with a link, and closes the issue. The rules below match cloud.py.
+const KEYWORD_RE = /^[A-Za-z0-9][A-Za-z0-9 +#&/.\-]{0,59}$/;
+const ANYWHERE_TAG = " (also in descriptions)";
+const POLL_MS = 90000;           // GitHub allows 60 unauthenticated API calls an hour
+const PENDING_MS = 45 * 60000;   // stop tracking a request after this long
+const slugify = s => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "search";
+const findSearch = slug => D.searches.find(s => s.slug === slug || s.slug === slug + "-custom");
+const setStatus = (...parts) => document.getElementById("reqStatus").replaceChildren(...parts);
+
+function pending() {
+  const list = store.get("pending", []).filter(p => Date.now() - p.at < PENDING_MS);
+  store.set("pending", list);
+  return list;
+}
+
+function setupRequests() {
+  if (!D.repo) return;
+  const button = document.getElementById("newSearch"), panel = document.getElementById("requestPanel");
+  const toggle = open => {
+    panel.hidden = !open;
+    button.setAttribute("aria-expanded", String(open));
+    if (open) document.getElementById("reqKeywords").focus();
+  };
+  button.hidden = false;
+  button.addEventListener("click", () => toggle(panel.hidden));
+  document.getElementById("requestForm").addEventListener("submit", e => { e.preventDefault(); requestSearch(); });
+  if (pending().length) {  // a request made earlier from this browser
+    toggle(true);
+    checkRequests();
+  }
+}
+
+function requestSearch() {
+  const keywords = document.getElementById("reqKeywords").value.split(",").map(k => k.trim()).filter(Boolean);
+  const anywhere = document.getElementById("reqAnywhere").checked;
+  if (!keywords.length || keywords.length > 5 || !keywords.every(k => KEYWORD_RE.test(k))) {
+    setStatus("Use 1–5 keywords separated by commas. Each can use letters, numbers, spaces and + # & / . - (up to 60 characters).");
+    return;
+  }
+  const name = keywords.join(", "), slug = slugify(name);
+  const recent = findSearch(slug);
+  if (recent && !!recent.anywhere === anywhere && Date.now() - Date.parse(recent.generated || D.generated) < 24 * 3600e3) {
+    selectSearch(recent.slug);
+    setStatus(`“${name}” was searched in the last day, so here are those results.`);
+    return;
+  }
+  const title = `Search: ${name}${anywhere ? ANYWHERE_TAG : ""}`;
+  const body = "This asks AppGrab to search every company for these keywords. Keep the title as is and click **Create**.\n\n" +
+    "The search runs on GitHub in about 5 minutes. This issue then gets a link to the results and closes automatically.";
+  window.open(`https://github.com/${D.repo}/issues/new?title=${encodeURIComponent(title)}&body=${encodeURIComponent(body)}`,
+    "_blank", "noopener");
+  store.set("pending", [...pending().filter(p => p.title !== title), { title, slug, at: Date.now() }]);
+  setStatus("Finish the request on the GitHub page that just opened by clicking Create. This page keeps track of it.");
+  setTimeout(checkRequests, POLL_MS);
+}
+
+async function checkRequests() {
+  const list = pending();
+  if (!list.length) return;
+  const ready = list.filter(p => { const s = findSearch(p.slug); return s && Date.parse(s.generated || D.generated) >= p.at - 60000; });
+  if (ready.length) {  // the results are on this page now
+    store.set("pending", list.filter(p => !ready.includes(p)));
+    const s = findSearch(ready[ready.length - 1].slug);
+    selectSearch(s.slug);
+    setStatus(`Your search for “${s.name}” is ready.`);
+    return;
+  }
+  let issues = [];
+  try {
+    const r = await fetch(`https://api.github.com/repos/${D.repo}/issues?state=all&sort=created&direction=desc&per_page=30`,
+      { headers: { Accept: "application/vnd.github+json" } });
+    if (r.ok) issues = await r.json();
+  } catch { /* offline or rate-limited: try again on the next check */ }
+  const parts = [];
+  let finished = false;
+  for (const p of list) {
+    const name = p.title.replace(/^Search:\s*/, "");
+    const issue = issues.find(i => i.title === p.title && Date.parse(i.created_at) >= p.at - 120000);
+    if (!issue) {
+      parts.push(el("div", { text: `“${name}”: waiting for the request to be created on GitHub.` }));
+    } else if (issue.state === "open") {
+      const mins = Math.max(1, Math.round((Date.now() - Date.parse(issue.created_at)) / 60000));
+      parts.push(el("div", { text: `“${name}”: searching… requested ${mins} min ago.` }));
+    } else {
+      finished = true;
+      parts.push(el("div", {}, `“${name}”: finished. `, link(issue.html_url, "See the reply on GitHub")));
+    }
+  }
+  if (finished) {
+    const reload = el("button", { type: "button", class: "btn", text: "Reload to see the results" });
+    reload.addEventListener("click", () => location.reload());
+    parts.push(reload);
+  }
+  setStatus(...parts);
+  setTimeout(checkRequests, POLL_MS);
+}
+
+function init() {
+  setupSearchSelect();
   const levelSelect = document.getElementById("level");
   for (const [value, label] of LEVEL_PRESETS) levelSelect.append(el("option", { value, text: label }));
   levelSelect.value = st.level;
@@ -301,6 +452,7 @@ function init() {
   refreshCounts();
   render();
   renderCompanies();
+  setupRequests();
 }
 init();
 </script>
