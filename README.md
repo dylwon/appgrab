@@ -48,10 +48,10 @@ Each saved search adds a few minutes to every run. Keep searches specific: AppGr
 
 The page is published at **https://dylwon.github.io/appgrab/** for anyone to open. It only shows the saved searches in `companies.json`; visitors can browse and filter them but can't start searches of their own. GitHub runs AppGrab on its own servers (`.github/workflows/refresh.yml`, which runs `cloud.py`):
 
-- **Every day at about 6 AM Pacific** it refreshes the saved searches.
+- **Every day at about 6 AM Pacific** it refreshes the saved searches. The first saved search runs first and the others take turns running next. Some sites refuse requests partway through a run (the Eightfold sites, such as Qualcomm and Micron, do this after a few hundred requests). A company that fails keeps its last good results, for up to 14 days, and the companies table shows their date.
 - **Adding a saved search** (only you can, since it means editing this repository): add it under `searches` in `companies.json`, then commit and push. The run that the push starts searches just the new saved searches (a few minutes each) and publishes them; the others keep their stored results.
 - **Actions → Refresh job board → Run workflow** refreshes all saved searches right away.
-- **Pushing to `main` otherwise just rebuilds the page from the stored results without searching job sites.** For example, editing `template.html` takes effect within a minute or two.
+- **Pushing to `main` otherwise just rebuilds the page from the stored results without searching job sites.** For example, editing `template.html` takes effect within a minute or two. So does adding `exclude_title_terms` to a saved search: stored roles it now excludes are dropped. New keywords only find more roles at the next refresh.
 - **Private one-off searches** stay on your PC: `python appgrab.py --search ...` writes a local page and never touches the shared one.
 
 Results and NEW-badge history are stored on the `appgrab-state` branch. Each viewer's **Applied** checkmarks are stored in their own browser. Some job sites block cloud servers, so a few companies can end up under "Check these sites yourself" on the shared page even when a run on your own PC reads them fine.

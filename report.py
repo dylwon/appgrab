@@ -44,7 +44,9 @@ def _when(search, payload):
 def merge(stored, new, saved_slugs, keep_days=14, max_custom=20):
     """Stored page data plus a new run. Searches in the new run replace their stored versions, saved
     searches still in companies.json are kept, and custom searches are kept for keep_days (at most
-    max_custom of them, newest first)."""
+    max_custom of them, newest first). A company that failed this run keeps its last good results
+    for that search (marked with their date) for up to keep_days, so a site that refuses requests
+    for a day doesn't empty its part of the page."""
     if not stored:
         return new
     fresh = {s["slug"] for s in new["searches"]}
@@ -64,9 +66,21 @@ def merge(stored, new, saved_slugs, keep_days=14, max_custom=20):
                     key=lambda s: dt.datetime.fromisoformat(s["generated"]), reverse=True)
     searches = saved + custom[:max_custom]
     kept = {s["slug"] for s in searches} - fresh
-    return {**new, "searches": searches,
-            "jobs": [j for j in stored.get("jobs", []) if j["search"] in kept] + new["jobs"],
-            "companies": [c for c in stored.get("companies", []) if c["search"] in kept] + new["companies"]}
+    jobs = [j for j in stored.get("jobs", []) if j["search"] in kept]
+    companies = [c for c in stored.get("companies", []) if c["search"] in kept]
+    ran = {s["slug"]: _when(s, stored) for s in stored.get("searches", [])}
+    last_good = {(c["search"], c["name"]): c for c in stored.get("companies", [])
+                 if c["status"] == "ok" and c["search"] in ran}
+    for c in new["companies"]:
+        prev = last_good.get((c["search"], c["name"])) if c["status"] == "error" else None
+        as_of = prev and (dt.datetime.fromisoformat(prev["as_of"]) if prev.get("as_of") else ran[c["search"]])
+        if prev and as_of >= cutoff:
+            companies.append({**prev, "as_of": as_of.isoformat(timespec="seconds"), "refresh_error": c["message"]})
+            jobs += [{**j, "new": False} for j in stored.get("jobs", [])
+                     if j["search"] == c["search"] and j["company"] == c["name"]]
+        else:
+            companies.append(c)
+    return {**new, "searches": searches, "jobs": jobs + new["jobs"], "companies": companies}
 
 
 def page_data(page_html):

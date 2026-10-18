@@ -273,7 +273,8 @@ function renderCompanies() {
   document.getElementById("companies").replaceChildren(...comps.map(c => el("tr", {},
     el("td", { text: c.name }), el("td", { text: CAT_LABEL[c.category] || c.category }), el("td", { text: c.platform }),
     el("td", { text: c.status === "ok" ? String(c.count) : "–" }),
-    el("td", { text: c.status === "ok" ? `${c.checked} postings checked` : c.message }),
+    el("td", { text: c.status !== "ok" ? c.message : c.as_of
+      ? `Couldn't refresh this run; showing results from ${shortDate(c.as_of)}` : `${c.checked} postings checked` }),
     el("td", {}, c.link ? link(c.link, "Open ↗") : null))));
 }
 

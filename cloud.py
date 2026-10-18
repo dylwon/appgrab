@@ -5,6 +5,7 @@ The daily schedule and the "Run workflow" button refresh every saved search. A p
 page from the results stored on the appgrab-state branch, searching just the saved searches that have
 no results yet (for example one you just added to companies.json).
 """
+import collections
 import datetime as dt
 import json
 import os
@@ -13,6 +14,7 @@ import urllib.request
 from pathlib import Path
 
 import appgrab
+import filters
 import report
 
 STATE = Path("state")  # restored from and saved to the appgrab-state branch by the workflow
@@ -39,6 +41,28 @@ def stored_results(repo):
         return None
 
 
+def refresh_order(saved, day):
+    """The first saved search always runs first and the others take turns running next, so a site
+    that starts refusing requests partway through a run doesn't cut off the same searches every day."""
+    rest = list(saved[1:])
+    if len(rest) < 2:
+        return list(saved)
+    k = day % len(rest)
+    return list(saved[:1]) + rest[k:] + rest[:k]
+
+
+def refilter(payload, settings, saved):
+    """Drop stored roles whose titles the saved searches no longer match (e.g. after adding
+    exclude_title_terms), so such edits apply without searching the job sites again."""
+    specs = {s.slug: s for s in saved}
+    jobs = [j for j in payload["jobs"]
+            if j["search"] not in specs or filters.title_class(j["title"], settings, specs[j["search"]]) != "reject"]
+    counts = collections.Counter((j["search"], j["company"]) for j in jobs)
+    companies = [{**c, "count": counts[(c["search"], c["name"])]} if c["status"] == "ok" else c
+                 for c in payload["companies"]]
+    return {**payload, "jobs": jobs, "companies": companies}
+
+
 def main():
     sys.stdout.reconfigure(errors="replace")
     event = os.environ.get("GITHUB_EVENT_NAME", "")
@@ -46,8 +70,8 @@ def main():
     stored = stored_results(os.environ.get("GITHUB_REPOSITORY", ""))
     have = {s["slug"] for s in (stored or {}).get("searches", [])}
     refresh = event in ("schedule", "workflow_dispatch")
-    searches = saved if refresh else [s for s in saved if s.slug not in have]
     now = dt.datetime.now(dt.timezone.utc)
+    searches = refresh_order(saved, now.toordinal()) if refresh else [s for s in saved if s.slug not in have]
     results = []
     if searches:
         companies = config.get("companies", [])
@@ -59,7 +83,7 @@ def main():
         print("Nothing to search; rebuilding the page from stored results.")
     new = report.build_payload(results, searches, settings, now)
     # max_custom=0: only saved searches appear on the shared page.
-    payload = report.merge(stored, new, [s.slug for s in saved], max_custom=0)
+    payload = refilter(report.merge(stored, new, [s.slug for s in saved], max_custom=0), settings, saved)
     report.render(payload, SITE_PAGE)
     STATE.mkdir(exist_ok=True)
     RESULTS_FILE.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")

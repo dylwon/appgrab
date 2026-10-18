@@ -78,7 +78,9 @@
         "analog",
         "layout",
         "photonic",
-        "software"
+        "software",
+        "package",
+        "packaging"
       ]
     },
     {
@@ -88,7 +90,8 @@
         "physical verification"
       ],
       "exclude_title_terms": [
-        "physical layer"
+        "physical layer",
+        "security"
       ]
     },
     {
